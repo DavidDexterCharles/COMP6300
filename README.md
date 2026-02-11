@@ -1,5 +1,7 @@
 # COMP6300
 
+Week 4 Lab: Implement SSR, REST API endpoints, DB read/write, and Pydantic schema validation
+
 **Model–View–Controller** setup in FastAPI using **server-side rendered HTML (Jinja2)** with only:
 
 - `model.py` (SQLAlchemy + DB session)
