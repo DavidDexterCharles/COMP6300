@@ -253,6 +253,7 @@ templates/users.html
 
 ```html
 <!doctype html>
+<!-- this file will be server side rendered by the fastapi backend, and will be used to display the list of users and a form to add new users. It will also include some client-side JavaScript to handle form submission and fetching the list of users from the backend API. -->
 <html>
   <body>
     <h1>Users</h1>
