@@ -42,6 +42,10 @@ node_modules/
 jspm_packages/
 venv/
 
+# Python compiled files
+*.pyc
+__pycache__/
+
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
 
