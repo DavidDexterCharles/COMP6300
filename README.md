@@ -28,6 +28,8 @@ app/
 
 ## 0. Create the app Directory if not already created
 
+Ensure you are within the app directory after creation, all operations including run via terminal takes place within the app directory.
+
 ```bash
 mkdir app
 cd app
