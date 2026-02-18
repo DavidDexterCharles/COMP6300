@@ -1,0 +1,273 @@
+<!doctype html>
+<!--
+  user2.html
+
+  Teaching page for:
+  - Register + login to receive a JWT
+  - Using the JWT in the Authorization header
+  - Authenticated CRUD for per-user items (notes)
+
+  IMPORTANT:
+  - This is intentionally minimal and not "production secure" UI.
+  - The JWT is stored in localStorage so students can see/use it easily.
+-->
+<html>
+  <body>
+    <h1>Login + Notes (JWT)</h1>
+
+    <p>
+      This page talks to:
+      <code>/api/register</code>, <code>/api/login</code>, and protected notes endpoints.
+    </p>
+
+    <hr />
+
+    <h2>1) Register</h2>
+    <form id="registerForm">
+      <input id="regName" placeholder="name" required />
+      <input id="regEmail" placeholder="email" required />
+      <input id="regPassword" placeholder="password" type="password" required />
+      <button type="submit">Register (and get token)</button>
+    </form>
+
+    <h2>2) Login</h2>
+    <form id="loginForm">
+      <input id="loginEmail" placeholder="email" required />
+      <input id="loginPassword" placeholder="password" type="password" required />
+      <button type="submit">Login (and get token)</button>
+    </form>
+
+    <p>
+      <button id="logoutBtn" type="button">Logout (clear token)</button>
+    </p>
+
+    <p id="error" style="color: red"></p>
+
+    <hr />
+
+    <h2>3) Token</h2>
+    <p>
+      The backend expects:
+      <code>Authorization: Bearer &lt;token&gt;</code>
+    </p>
+    <textarea
+      id="tokenBox"
+      rows="4"
+      style="width: 100%"
+      placeholder="Token will appear here after register/login"
+      readonly
+    ></textarea>
+
+    <p>
+      <button id="whoAmIBtn" type="button">Call /api/me (auth required)</button>
+    </p>
+    <pre id="meBox" style="background: #f6f6f6; padding: 8px"></pre>
+
+    <hr />
+
+    <h2>4) Notes (authenticated)</h2>
+    <p>
+      These endpoints require the JWT token in the Authorization header:
+      <code>GET /api/notes</code>,
+      <code>POST /api/notes</code>,
+      <code>POST /api/notes/delete</code>
+    </p>
+
+    <p>
+      <button id="refreshNotesBtn" type="button">Refresh notes</button>
+    </p>
+
+    <form id="noteForm">
+      <input id="noteText" placeholder="new note text" required />
+      <button type="submit">Add note</button>
+    </form>
+
+    <form id="deleteNoteForm" style="margin-top: 8px">
+      <input id="deleteNoteId" placeholder="note id to delete" required />
+      <button type="submit">Delete note by id</button>
+    </form>
+
+    <ul id="notesList"></ul>
+
+    <script>
+      function setError(msg) {
+        document.getElementById("error").textContent = msg || "";
+      }
+
+      function getToken() {
+        return localStorage.getItem("token") || "";
+      }
+
+      function setToken(token) {
+        localStorage.setItem("token", token);
+        document.getElementById("tokenBox").value = token || "";
+      }
+
+      // Helper for making authenticated requests.
+      // If there is no token, the request will likely fail with 401.
+      async function authFetch(url, options = {}) {
+        const token = getToken();
+        const headers = options.headers ? { ...options.headers } : {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+        return fetch(url, { ...options, headers });
+      }
+
+      async function loadMe() {
+        setError("");
+        document.getElementById("meBox").textContent = "";
+
+        const res = await authFetch("/api/me");
+        const data = await res.json();
+
+        if (!res.ok || data.error || data.detail) {
+          setError(data.error || data.detail || "Failed to load /api/me");
+          return;
+        }
+
+        document.getElementById("meBox").textContent = JSON.stringify(data, null, 2);
+      }
+
+      async function loadNotes() {
+        setError("");
+        const list = document.getElementById("notesList");
+        list.innerHTML = "";
+
+        const res = await authFetch("/api/notes");
+        const data = await res.json();
+
+        if (!res.ok || data.error || data.detail) {
+          setError(data.error || data.detail || "Failed to load notes");
+          return;
+        }
+
+        data.forEach((n) => {
+          const li = document.createElement("li");
+          li.textContent = `${n.id} — ${n.text}`;
+          list.appendChild(li);
+        });
+      }
+
+      document.getElementById("registerForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        setError("");
+
+        const payload = {
+          name: document.getElementById("regName").value,
+          email: document.getElementById("regEmail").value,
+          password: document.getElementById("regPassword").value,
+        };
+
+        const res = await fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          setError(data.error || "Register failed");
+          return;
+        }
+
+        // Store token so we can call protected endpoints.
+        setToken(data.token);
+        e.target.reset();
+        loadMe();
+        loadNotes();
+      });
+
+      document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        setError("");
+
+        const payload = {
+          email: document.getElementById("loginEmail").value,
+          password: document.getElementById("loginPassword").value,
+        };
+
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          setError(data.error || "Login failed");
+          return;
+        }
+
+        setToken(data.token);
+        e.target.reset();
+        loadMe();
+        loadNotes();
+      });
+
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        setToken("");
+        document.getElementById("meBox").textContent = "";
+        document.getElementById("notesList").innerHTML = "";
+        setError("");
+      });
+
+      document.getElementById("whoAmIBtn").addEventListener("click", loadMe);
+      document.getElementById("refreshNotesBtn").addEventListener("click", loadNotes);
+
+      document.getElementById("noteForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        setError("");
+
+        const payload = { text: document.getElementById("noteText").value };
+
+        const res = await authFetch("/api/notes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (!res.ok || data.error || data.detail) {
+          setError(data.error || data.detail || "Failed to add note");
+          return;
+        }
+
+        e.target.reset();
+        loadNotes();
+      });
+
+      document.getElementById("deleteNoteForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        setError("");
+
+        const payload = { note_id: parseInt(document.getElementById("deleteNoteId").value, 10) };
+
+        const res = await authFetch("/api/notes/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (!res.ok || data.error || data.detail) {
+          setError(data.error || data.detail || "Failed to delete note");
+          return;
+        }
+
+        e.target.reset();
+        loadNotes();
+      });
+
+      // On page load, show any existing token and try loading data.
+      setToken(getToken());
+      if (getToken()) {
+        loadMe();
+        loadNotes();
+      }
+    </script>
+  </body>
+</html>
+

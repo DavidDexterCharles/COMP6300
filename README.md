@@ -22,9 +22,13 @@ app/
 ├── view.py
 ├── controller.py
 ├── templates/
-│   └── users.html
+│   ├── users.html
+│   └── user2.html
 └── app.db   (created automatically)
 ```
+
+Teaching note:
+- `app.db` is created automatically and will include tables: `users`, `user_credentials`, and `notes`.
 
 ## 0. Create the app Directory if not already created
 
@@ -101,7 +105,9 @@ After this, the `(venv)` prefix will disappear from your prompt.
 ## 3. Third Install libraries
 
 ```bash
-pip install fastapi uvicorn sqlalchemy jinja2 python-multipart pydantic[email]
+# Added in this lab extension:
+# - PyJWT: issue + verify JWT tokens for login/register
+pip install fastapi uvicorn sqlalchemy jinja2 python-multipart pydantic[email] pyjwt
 ```
 
 ## 4. Create the Templates Folder
@@ -127,7 +133,7 @@ controller.py
 model.py
 
 ```python
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 DATABASE_URL = "sqlite:///./app.db"
@@ -147,6 +153,30 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
+
+
+class UserCredential(Base):
+    """
+    Teaching note:
+    We keep the original `users` table unchanged and store passwords separately.
+    """
+
+    __tablename__ = "user_credentials"
+
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    password_hash = Column(String, nullable=False)
+
+
+class Note(Base):
+    """
+    Per-user note items (used for authenticated CRUD).
+    """
+
+    __tablename__ = "notes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
+    text = Column(String, nullable=False)
 
 
 def init_db():
@@ -174,20 +204,36 @@ def render_users(request: Request):
         "users.html",
         {"request": request},
     )
+
+def render_users2(request: Request):
+    return templates.TemplateResponse(
+        "user2.html",
+        {"request": request},
+    )
 ```
 
 controller.py
 
 ```python
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.exc import IntegrityError
+
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from typing import Optional
+import os
+import jwt
 
 import model
 import view
 
 router = APIRouter()
+
+# JWT configuration (teaching)
+JWT_SECRET = os.getenv("JWT_SECRET", "dev-secret-change-me")
+JWT_ALGORITHM = "HS256"
+bearer_scheme = HTTPBearer(auto_error=False)
 
 
 @router.get("/users")
@@ -195,9 +241,68 @@ def users_page(request: Request):
     return view.render_users(request)
 
 
+@router.get("/users2")
+def users2_page(request: Request):
+    return view.render_users2(request)
+
+
 class UserCreate(BaseModel):
     name: str
     email: EmailStr
+
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+
+class RegisterPayload(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+
+
+class LoginPayload(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class NoteCreate(BaseModel):
+    text: str
+
+
+class NoteDelete(BaseModel):
+    note_id: int
+
+
+def get_current_user(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    db: Session = Depends(model.get_db),
+) -> model.User:
+    """
+    AUTH REQUIRED dependency.
+
+    Send token via:
+    - Authorization: Bearer <token>   (standard)
+    - OR ?token=<token>               (teaching / quick testing)
+    """
+
+    token = credentials.credentials if credentials else None
+    if not token:
+        token = request.query_params.get("token")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing token. Send Authorization: Bearer <token> or ?token=<token>",
+        )
+
+    payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+    user_id = int(payload["sub"])
+    user = db.query(model.User).filter(model.User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    return user
 
 
 @router.get("/api/users")
@@ -220,29 +325,87 @@ def api_create_user(payload: UserCreate, db: Session = Depends(model.get_db)):
 
     return {"id": user.id, "name": user.name, "email": user.email}
 
+
+# ... plus: GET/PUT/DELETE /api/users/{user_id} ...
+# ... plus: POST /api/register and POST /api/login (issue JWTs) ...
+
+
+@router.get("/api/me")
+def api_me(current_user: model.User = Depends(get_current_user)):
+    """AUTH REQUIRED."""
+    return {"id": current_user.id, "name": current_user.name, "email": current_user.email}
+
+
+@router.get("/api/notes")
+def api_list_notes(
+    current_user: model.User = Depends(get_current_user),
+    db: Session = Depends(model.get_db),
+):
+    """AUTH REQUIRED."""
+    notes = db.query(model.Note).filter(model.Note.user_id == current_user.id).all()
+    return [{"id": n.id, "text": n.text} for n in notes]
+
+
+@router.post("/api/notes")
+def api_add_note(
+    payload: NoteCreate,
+    current_user: model.User = Depends(get_current_user),
+    db: Session = Depends(model.get_db),
+):
+    """AUTH REQUIRED."""
+    note = model.Note(user_id=current_user.id, text=payload.text)
+    db.add(note)
+    db.commit()
+    db.refresh(note)
+    return {"id": note.id, "text": note.text}
+
+
+@router.post("/api/notes/delete")
+def api_delete_note(
+    payload: NoteDelete,
+    current_user: model.User = Depends(get_current_user),
+    db: Session = Depends(model.get_db),
+):
+    """AUTH REQUIRED."""
+    note = (
+        db.query(model.Note)
+        .filter(model.Note.id == payload.note_id, model.Note.user_id == current_user.id)
+        .first()
+    )
+    if note is None:
+        return {"error": "Note not found"}
+    db.delete(note)
+    db.commit()
+    return {"ok": True}
+
 ```
 
 main.py
 
 ```python
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
 import uvicorn
 
 import model
 from controller import router
 
-app = FastAPI()
-
-@app.on_event("startup")
-def startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
     model.init_db()
+    yield
+    # Shutdown
+    pass
+
+app = FastAPI(lifespan=lifespan)
 
 app.include_router(router)
 
 
 if __name__ == "__main__":
     uvicorn.run(
-        app,
+        "main:app",
         host="127.0.0.1",
         port=8080,
         reload=True
@@ -342,3 +505,74 @@ http://127.0.0.1:8080/users
 - **Model**: defines data + DB session
 - **Controller**: handles HTTP, reads form fields, calls DB, returns view
 - **View**: renders HTML templates and receives data from controller
+
+---
+
+## Week 4 extension: Register/Login (JWT) + Authenticated Notes
+
+This repo now also includes a minimal example of:
+
+- **Register** a user and store a **password hash** (never store raw passwords)
+- **Login** to receive a **JWT token**
+- Call **authenticated endpoints** by sending:
+  - `Authorization: Bearer <token>`
+  - (teaching fallback) or add `?token=<token>` to the URL
+
+### New pages
+
+- `GET /users2`:
+  - A teaching UI (`templates/user2.html`) to register/login and create/delete notes
+
+### New database tables (created automatically)
+
+We **keep the original `users` table**. Two extra tables are added:
+
+- `user_credentials`:
+  - Stores password hashes (one row per user)
+- `notes`:
+  - Stores per-user note items (used to demonstrate authenticated CRUD)
+
+If you already have an old `app.db`, these new tables will be created on startup.
+Existing users that were created before this extension will not have passwords set.
+
+### Auth endpoints
+
+- `POST /api/register`
+  - body: `{ "name": "...", "email": "...", "password": "..." }`
+  - returns: `{ token, token_type, user }`
+- `POST /api/login`
+  - body: `{ "email": "...", "password": "..." }`
+  - returns: `{ token, token_type, user }`
+- `GET /api/me` (**auth required**)
+  - returns the current user extracted from the token
+
+### User CRUD endpoints
+
+- `GET /api/users`
+- `POST /api/users`
+- `GET /api/users/{user_id}`
+- `PUT /api/users/{user_id}`
+- `DELETE /api/users/{user_id}`
+
+### Notes endpoints (auth required)
+
+These require the JWT token in the request header.
+
+- `GET /api/notes`
+- `POST /api/notes`
+  - body: `{ "text": "..." }`
+- `POST /api/notes/delete`
+  - body: `{ "note_id": 123 }`
+
+### JWT secret (important)
+
+For teaching, the app defaults to a dev secret, but you can (and should) set your own.
+
+In **production**, teams commonly store secrets in a **`.env` file** (or a secret manager) and load them into environment variables (for example using `python-dotenv`). We **do not enforce** `.env` in this repo—this app simply reads `JWT_SECRET` directly from the environment.
+
+- PowerShell:
+
+```bash
+$env:JWT_SECRET="a-long-random-secret"
+python main.py
+```
