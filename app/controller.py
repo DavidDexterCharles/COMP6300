@@ -8,6 +8,9 @@ import view
 
 router = APIRouter()
 
+@router.get("/")
+def users_page(request: Request):
+    return {"message": "Hello world"}
 
 @router.get("/users")
 def users_page(request: Request):

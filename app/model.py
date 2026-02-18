@@ -20,6 +20,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
 
 
+
 def init_db():
     Base.metadata.create_all(bind=engine)
 
