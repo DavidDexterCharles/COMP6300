@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, HTTPException, status
+from fastapi import APIRouter, Depends, Request, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.exc import IntegrityError
@@ -103,6 +103,10 @@ def _create_token(user: model.User) -> str:
 
 def get_current_user(
     request: Request,
+    token: Optional[str] = Query(
+        default=None,
+        description="JWT token (teaching fallback). Prefer `Authorization: Bearer <token>`.",
+    ),
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     db: Session = Depends(model.get_db),
 ) -> model.User:
@@ -118,20 +122,19 @@ def get_current_user(
     """
 
     # Prefer the Authorization header (standard).
-    token = credentials.credentials if credentials else None
+    header_token = credentials.credentials if credentials else None
 
     # Teaching fallback: allow ?token=... so students can test in a browser easily.
-    if not token:
-        token = request.query_params.get("token")
+    effective_token = header_token or token
 
-    if not token:
+    if not effective_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing token. Send Authorization: Bearer <token> or ?token=<token>",
         )
 
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(effective_token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         user_id = int(payload["sub"])
     except Exception:
         raise HTTPException(
