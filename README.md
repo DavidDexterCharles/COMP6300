@@ -101,7 +101,7 @@ After this, the `(venv)` prefix will disappear from your prompt.
 ## 3. Third Install libraries
 
 ```bash
-pip install fastapi uvicorn sqlalchemy jinja2 python-multipart pydantic[email]
+pip install fastapi uvicorn sqlalchemy jinja2 python-multipart pydantic[email] pyjwt
 ```
 
 ## 4. Create the Templates Folder
