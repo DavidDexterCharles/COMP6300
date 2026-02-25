@@ -16,11 +16,6 @@ class UserUpdate(BaseModel):
     name: str
     email: EmailStr
 
-@router.get("/")
-def users_page():
-    return {"message": "Hello world"}
-
-
 @router.get("/api/users")
 def api_list_users(db: Session = Depends(model.get_db)):
     users = db.query(model.User).order_by(model.User.id.desc()).all()
@@ -59,12 +54,8 @@ def api_update_user(user_id: int, payload: UserUpdate, db: Session = Depends(mod
     user.name = payload.name
     user.email = payload.email
 
-    try:
-        db.commit()
-        db.refresh(user)
-    except IntegrityError:
-        db.rollback()
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already exists")
+    db.commit()
+    db.refresh(user)
 
     return {"id": user.id, "name": user.name, "email": user.email}
 
