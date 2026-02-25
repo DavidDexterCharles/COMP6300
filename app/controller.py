@@ -7,11 +7,6 @@ import model
 
 router = APIRouter()
 
-@router.get("/")
-def users_page():
-    return {"message": "Hello world"}
-
-
 class UserCreate(BaseModel):
     name: str
     email: EmailStr
@@ -20,6 +15,10 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     name: str
     email: EmailStr
+
+@router.get("/")
+def users_page():
+    return {"message": "Hello world"}
 
 
 @router.get("/api/users")
