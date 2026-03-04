@@ -83,16 +83,16 @@ npm install -D tailwindcss @tailwindcss/vite
 **1. Add the Vite plugin** — In `my-app/vite.config.js`, add the Tailwind plugin:
 
 ```js
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-})
+});
 ```
 
-**2. Import Tailwind in CSS** — At the top of `my-app/src/index.css`, add:
+**2. Import Tailwind in CSS** — Clear out index.css and At the top of `my-app/src/index.css`, add:
 
 ```css
 @import "tailwindcss";
@@ -192,28 +192,28 @@ Use a simple **`id`** (number or string) for each course so you can update and d
 
 **Core courses**
 
-| Course Code  | Course Title |
-|-------------|-----------------------------------------------|
+| Course Code | Course Title                                                 |
+| ----------- | ------------------------------------------------------------ |
 | COMP 6501   | Research Methods, Entrepreneurship and Intellectual Property |
-| COMP 6925   | Applied Operations Research |
-| STAT 6105   | Probability and Statistical Methods for Data Analytics |
-| STAT 6106   | Statistical Inference for Data Analytics |
-| COMP 6930   | Machine Learning and Data Mining |
-| COMP 6940   | Big Data and Visual Analytics |
-| STAT 6005   | Research Project |
+| COMP 6925   | Applied Operations Research                                  |
+| STAT 6105   | Probability and Statistical Methods for Data Analytics       |
+| STAT 6106   | Statistical Inference for Data Analytics                     |
+| COMP 6930   | Machine Learning and Data Mining                             |
+| COMP 6940   | Big Data and Visual Analytics                                |
+| STAT 6005   | Research Project                                             |
 
 **Elective courses**
 
-| Course Code  | Course Title |
-|-------------|-----------------------------------------------|
-| COMP 6300    | Advanced Internet Technologies |
-| COMP 6401    | Advanced Algorithms |
-| COMP 6802    | Distributed and Parallel Database Systems |
-| COMP 6905    | Cloud Technologies |
-| STAT 6160    | Data Analysis |
-| STAT 6170    | Multivariate Analysis |
-| STAT 6181    | Computational Statistics I |
-| STAT 6182    | Computational Statistics II |
+| Course Code | Course Title                              |
+| ----------- | ----------------------------------------- |
+| COMP 6300   | Advanced Internet Technologies            |
+| COMP 6401   | Advanced Algorithms                       |
+| COMP 6802   | Distributed and Parallel Database Systems |
+| COMP 6905   | Cloud Technologies                        |
+| STAT 6160   | Data Analysis                             |
+| STAT 6170   | Multivariate Analysis                     |
+| STAT 6181   | Computational Statistics I                |
+| STAT 6182   | Computational Statistics II               |
 
 Example structure for one course in code:
 
@@ -312,7 +312,7 @@ export default function Course({ course, onEdit, onDelete }) {
         </button>
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -330,48 +330,53 @@ export default function CourseSearch({ value, onChange }) {
         className="w-full max-w-md px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
       />
     </div>
-  )
+  );
 }
 ```
 
 **3. `src/components/CourseListing.jsx`** (tiles, Create/Edit modals, Delete):
 
 ```jsx
-import { useState } from 'react'
-import Course from './Course'
+import { useState } from "react";
+import Course from "./Course";
 
-export default function CourseListing({ courses, onCreate, onUpdate, onDelete }) {
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editingCourse, setEditingCourse] = useState(null)
+export default function CourseListing({
+  courses,
+  onCreate,
+  onUpdate,
+  onDelete,
+}) {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingCourse, setEditingCourse] = useState(null);
 
   function openCreate() {
-    setEditingCourse(null)
-    setModalOpen(true)
+    setEditingCourse(null);
+    setModalOpen(true);
   }
 
   function openEdit(course) {
-    setEditingCourse(course)
-    setModalOpen(true)
+    setEditingCourse(course);
+    setModalOpen(true);
   }
 
   function closeModal() {
-    setModalOpen(false)
-    setEditingCourse(null)
+    setModalOpen(false);
+    setEditingCourse(null);
   }
 
   function handleSubmit(e) {
-    e.preventDefault()
-    const form = e.target
-    const code = form.code.value.trim()
-    const title = form.title.value.trim()
-    const category = form.category?.value?.trim() || 'Core'
-    if (!code || !title) return
+    e.preventDefault();
+    const form = e.target;
+    const code = form.code.value.trim();
+    const title = form.title.value.trim();
+    const category = form.category?.value?.trim() || "Core";
+    if (!code || !title) return;
     if (editingCourse) {
-      onUpdate(editingCourse.id, { code, title, category })
+      onUpdate(editingCourse.id, { code, title, category });
     } else {
-      onCreate({ code, title, category })
+      onCreate({ code, title, category });
     }
-    closeModal()
+    closeModal();
   }
 
   return (
@@ -386,43 +391,48 @@ export default function CourseListing({ courses, onCreate, onUpdate, onDelete })
         </button>
         {courses.map((course) => (
           <div key={course.id} className="w-[280px]">
-            <Course
-              course={course}
-              onEdit={openEdit}
-              onDelete={onDelete}
-            />
+            <Course course={course} onEdit={openEdit} onDelete={onDelete} />
           </div>
         ))}
       </div>
 
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-10" onClick={closeModal}>
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-10"
+          onClick={closeModal}
+        >
           <div
             className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-lg font-semibold text-slate-800 mb-4">
-              {editingCourse ? 'Edit course' : 'Create course'}
+              {editingCourse ? "Edit course" : "Create course"}
             </h2>
             <form onSubmit={handleSubmit}>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Course code</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Course code
+              </label>
               <input
                 name="code"
                 defaultValue={editingCourse?.code}
                 required
                 className="w-full px-3 py-2 border border-slate-300 rounded mb-3"
               />
-              <label className="block text-sm font-medium text-slate-700 mb-1">Course title</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Course title
+              </label>
               <input
                 name="title"
                 defaultValue={editingCourse?.title}
                 required
                 className="w-full px-3 py-2 border border-slate-300 rounded mb-3"
               />
-              <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Category
+              </label>
               <select
                 name="category"
-                defaultValue={editingCourse?.category ?? 'Core'}
+                defaultValue={editingCourse?.category ?? "Core"}
                 className="w-full px-3 py-2 border border-slate-300 rounded mb-4"
               >
                 <option value="Core">Core</option>
@@ -440,7 +450,7 @@ export default function CourseListing({ courses, onCreate, onUpdate, onDelete })
                   type="submit"
                   className="px-4 py-2 rounded bg-slate-700 text-white hover:bg-slate-800"
                 >
-                  {editingCourse ? 'Save' : 'Create'}
+                  {editingCourse ? "Save" : "Create"}
                 </button>
               </div>
             </form>
@@ -448,66 +458,136 @@ export default function CourseListing({ courses, onCreate, onUpdate, onDelete })
         </div>
       )}
     </>
-  )
+  );
 }
 ```
 
 **4. `src/components/CourseManager.jsx`** (state, filter, and layout):
 
 ```jsx
-import { useState, useMemo } from 'react'
-import CourseSearch from './CourseSearch'
-import CourseListing from './CourseListing'
+import { useState, useMemo } from "react";
+import CourseSearch from "./CourseSearch";
+import CourseListing from "./CourseListing";
 
 const INITIAL_COURSES = [
-  { id: 1, code: 'COMP 6501', title: 'Research Methods, Entrepreneurship and Intellectual Property', category: 'Core' },
-  { id: 2, code: 'COMP 6925', title: 'Applied Operations Research', category: 'Core' },
-  { id: 3, code: 'STAT 6105', title: 'Probability and Statistical Methods for Data Analytics', category: 'Core' },
-  { id: 4, code: 'STAT 6106', title: 'Statistical Inference for Data Analytics', category: 'Core' },
-  { id: 5, code: 'COMP 6930', title: 'Machine Learning and Data Mining', category: 'Core' },
-  { id: 6, code: 'COMP 6940', title: 'Big Data and Visual Analytics', category: 'Core' },
-  { id: 7, code: 'STAT 6005', title: 'Research Project', category: 'Core' },
-  { id: 8, code: 'COMP 6300', title: 'Advanced Internet Technologies', category: 'Elective' },
-  { id: 9, code: 'COMP 6401', title: 'Advanced Algorithms', category: 'Elective' },
-  { id: 10, code: 'COMP 6802', title: 'Distributed and Parallel Database Systems', category: 'Elective' },
-  { id: 11, code: 'COMP 6905', title: 'Cloud Technologies', category: 'Elective' },
-  { id: 12, code: 'STAT 6160', title: 'Data Analysis', category: 'Elective' },
-  { id: 13, code: 'STAT 6170', title: 'Multivariate Analysis', category: 'Elective' },
-  { id: 14, code: 'STAT 6181', title: 'Computational Statistics I', category: 'Elective' },
-  { id: 15, code: 'STAT 6182', title: 'Computational Statistics II', category: 'Elective' },
-]
+  {
+    id: 1,
+    code: "COMP 6501",
+    title: "Research Methods, Entrepreneurship and Intellectual Property",
+    category: "Core",
+  },
+  {
+    id: 2,
+    code: "COMP 6925",
+    title: "Applied Operations Research",
+    category: "Core",
+  },
+  {
+    id: 3,
+    code: "STAT 6105",
+    title: "Probability and Statistical Methods for Data Analytics",
+    category: "Core",
+  },
+  {
+    id: 4,
+    code: "STAT 6106",
+    title: "Statistical Inference for Data Analytics",
+    category: "Core",
+  },
+  {
+    id: 5,
+    code: "COMP 6930",
+    title: "Machine Learning and Data Mining",
+    category: "Core",
+  },
+  {
+    id: 6,
+    code: "COMP 6940",
+    title: "Big Data and Visual Analytics",
+    category: "Core",
+  },
+  { id: 7, code: "STAT 6005", title: "Research Project", category: "Core" },
+  {
+    id: 8,
+    code: "COMP 6300",
+    title: "Advanced Internet Technologies",
+    category: "Elective",
+  },
+  {
+    id: 9,
+    code: "COMP 6401",
+    title: "Advanced Algorithms",
+    category: "Elective",
+  },
+  {
+    id: 10,
+    code: "COMP 6802",
+    title: "Distributed and Parallel Database Systems",
+    category: "Elective",
+  },
+  {
+    id: 11,
+    code: "COMP 6905",
+    title: "Cloud Technologies",
+    category: "Elective",
+  },
+  { id: 12, code: "STAT 6160", title: "Data Analysis", category: "Elective" },
+  {
+    id: 13,
+    code: "STAT 6170",
+    title: "Multivariate Analysis",
+    category: "Elective",
+  },
+  {
+    id: 14,
+    code: "STAT 6181",
+    title: "Computational Statistics I",
+    category: "Elective",
+  },
+  {
+    id: 15,
+    code: "STAT 6182",
+    title: "Computational Statistics II",
+    category: "Elective",
+  },
+];
 
 export default function CourseManager() {
-  const [courses, setCourses] = useState(INITIAL_COURSES)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [courses, setCourses] = useState(INITIAL_COURSES);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const filteredCourses = useMemo(() => {
-    if (!searchTerm.trim()) return courses
-    const term = searchTerm.toLowerCase().trim()
+    if (!searchTerm.trim()) return courses;
+    const term = searchTerm.toLowerCase().trim();
     return courses.filter(
       (c) =>
         c.code.toLowerCase().includes(term) ||
-        c.title.toLowerCase().includes(term)
-    )
-  }, [courses, searchTerm])
+        c.title.toLowerCase().includes(term),
+    );
+  }, [courses, searchTerm]);
 
   function handleCreate(course) {
-    setCourses((prev) => [...prev, { ...course, id: Math.max(0, ...prev.map((c) => c.id)) + 1 }])
+    setCourses((prev) => [
+      ...prev,
+      { ...course, id: Math.max(0, ...prev.map((c) => c.id)) + 1 },
+    ]);
   }
 
   function handleUpdate(id, updates) {
     setCourses((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, ...updates } : c))
-    )
+      prev.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+    );
   }
 
   function handleDelete(id) {
-    setCourses((prev) => prev.filter((c) => c.id !== id))
+    setCourses((prev) => prev.filter((c) => c.id !== id));
   }
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-2xl font-semibold text-slate-800 mb-6">Course list</h1>
+      <h1 className="text-2xl font-semibold text-slate-800 mb-6">
+        Course list
+      </h1>
       <CourseSearch value={searchTerm} onChange={setSearchTerm} />
       <CourseListing
         courses={filteredCourses}
@@ -516,25 +596,25 @@ export default function CourseManager() {
         onDelete={handleDelete}
       />
     </div>
-  )
+  );
 }
 ```
 
 **5. `src/App.jsx`** (minimal entry):
 
 ```jsx
-import './App.css'
-import CourseManager from './components/CourseManager'
+import "./App.css";
+import CourseManager from "./components/CourseManager";
 
 function App() {
   return (
     <div className="min-h-screen bg-slate-50">
       <CourseManager />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
 ```
 
 **6. `src/App.css`** — keep minimal or empty; e.g.:
