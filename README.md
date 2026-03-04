@@ -2,153 +2,130 @@
 
 Week 7 Lab: Implement React App
 
-This repo starts with **simple React in HTML** (no build step) here we keep things minimal.
+This repo uses the **production** way to build React apps: scaffold with a build tool, then run and build. The standard approach is **Vite** with the React template (fast, minimal, recommended over Create React App). From here you can later move to **Next.js** when you need a full-stack framework.
 
 ---
 
-## Basic React: Imperative vs declarative (start here)
+## Prerequisites
 
-To see the difference between **imperative** (plain JS, direct DOM) and **declarative** (React) UIs, use two single-file examples. No Node, no build — just open the HTML files in a browser (or serve them with any static server).
+- **Node.js 20.19+ or 22.12+** (includes `npm` and `npx`). Vite requires this; Node 18 will fail with errors like `crypto.hash is not a function`. Check your version with `node -v`. If you need to upgrade, use the installer from [nodejs.org](https://nodejs.org/) or manage versions with **nvm** (below).
 
-### Folder for the basic examples
+### Managing Node version with nvm
 
-```
-react-basics/
-├── imperative.html     ← Plain HTML + vanilla JS (imperative)
-├── declarative.html    ← HTML + React via CDN (declarative)
-└── declarative2.html   ← Same idea, illustrates passing parameters to handlers
-```
+**nvm** (Node Version Manager) lets you install and switch between multiple Node.js versions on the same machine.
 
-### 1. Imperative: plain HTML + vanilla JavaScript
+**Windows (nvm-windows)**
 
-One file: **`react-basics/imperative.html`**. You **tell the browser exactly what to do**: get elements, create nodes, set text, attach listeners.
+1. Download the latest **nvm-setup.exe** from [nvm-windows releases](https://github.com/coreybutler/nvm-windows/releases).
+2. Run the installer. It will set up `nvm` and ask you to uninstall any existing Node.js so nvm can manage it.
+3. Open a **new** Command Prompt or PowerShell. Run:
+   ```bash
+   nvm install 22
+   nvm use 22
+   node -v
+   ```
+   Use `20` instead of `22` if you prefer Node 20 LTS.
 
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Imperative counter</title>
-  </head>
-  <body>
-    <h1>Imperative (plain JS)</h1>
-    <p>Count: <span id="count">0</span></p>
-    <button id="inc">+1</button>
-    <button id="dec">-1</button>
+**macOS / Linux**
 
-    <script>
-      let count = 0;
-      const countEl = document.getElementById("count");
-      const incBtn = document.getElementById("inc");
-      const decBtn = document.getElementById("dec");
+1. Install nvm (restart the terminal or run `source ~/.bashrc` or `source ~/.zshrc` afterward if needed):
+   ```bash
+   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
+   ```
+2. Install and use a compatible Node version:
+   ```bash
+   nvm install 22
+   nvm use 22
+   node -v
+   ```
 
-      function updateUI() {
-        countEl.textContent = count;
-      }
+**Useful nvm commands**
 
-      incBtn.addEventListener("click", function () {
-        count++;
-        updateUI();
-      });
-      decBtn.addEventListener("click", function () {
-        count--;
-        updateUI();
-      });
-
-      updateUI();
-    </script>
-  </body>
-</html>
-```
-
-You manually: read/write the DOM, keep `count` in a variable, and sync the `<span>` with `updateUI()`.
-
-### 2. Declarative: same UI with React (in HTML, no build)
-
-One file: **`react-basics/declarative.html`**. You **describe what the UI should look like** for a given state; React updates the DOM for you.
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Declarative counter (React)</title>
-    <script
-      crossorigin
-      src="https://unpkg.com/react@18/umd/react.development.js"
-    ></script>
-    <script
-      crossorigin
-      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
-    ></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  </head>
-  <body>
-    <div id="root"></div>
-
-    <script type="text/babel">
-      const { useState } = React;
-
-      function Counter() {
-        const [count, setCount] = useState(0);
-        return (
-          <div>
-            <h1>Declarative (React)</h1>
-            <p>Count: {count}</p>
-            <button onClick={() => setCount(count + 1)}>+1</button>
-            <button onClick={() => setCount(count - 1)}>-1</button>
-          </div>
-        );
-      }
-
-      const root = ReactDOM.createRoot(document.getElementById("root"));
-      root.render(<Counter />);
-    </script>
-  </body>
-</html>
-```
-
-Here you only declare: “when `count` is X, show this.” React handles DOM updates. This is **React in HTML** — no npm or bundler; next step later is a proper React app, then Next.js.
-
-### 3. Passing parameters: `declarative2.html`
-
-File **`react-basics/declarative2.html`** extends the counter with **named functions** and shows how to **pass parameters** to event handlers.
-
-- **Named function, no parameters:** You can replace an inline handler with a named function and pass it directly to `onClick`:
-
-  ```js
-  function increment() {
-    setCount(count + 1);
-  }
-  // ...
-  <button onClick={increment}>+1</button>;
-  ```
-
-  Same behaviour as `onClick={() => setCount(count + 1)}`, but clearer when the logic grows.
-
-- **Passing a parameter:** To pass an argument (e.g. increment by 2), you must wrap the call in an arrow function. Otherwise React would call your function immediately on render instead of on click:
-
-  ```js
-  function incrementBy(value) {
-    setCount(count + value);
-  }
-  // ...
-  <button onClick={() => incrementBy(2)}>+2</button>;
-  ```
-
-  So: no args → `onClick={increment}`; with args → `onClick={() => incrementBy(2)}`.
-
-### How to run the basic examples
-
-- **Option A:** Open `imperative.html`, `declarative.html`, or `declarative2.html` directly in the browser (file://). For the React files, Babel loads from CDN so you need internet.
-- **Option B:** From the repo root run:
-
-  ```bash
-  npx --yes serve .
-  ```
-
-  This runs the **serve** package (a small static file server) without installing it globally: **npx** fetches and runs the package, **--yes** skips the install prompt, and **.** means “serve the current directory.” You’ll get a local URL (e.g. `http://localhost:3000`). Then open e.g. `http://localhost:3000/react-basics/imperative.html`, `.../declarative.html`, and `.../declarative2.html`.
-
-  **Don’t have `npx`?** `npx` is included with **Node.js** (it ships with npm). Install Node.js from [nodejs.org](https://nodejs.org/) (LTS is fine). After installation, restart your terminal and run `npx --yes serve .` again.
+| Command | Purpose |
+|--------|--------|
+| `nvm list` | Show installed versions |
+| `nvm install 22` | Install Node 22 |
+| `nvm use 22` | Use Node 22 in this shell |
+| `nvm alias default 22` | Use Node 22 by default in new shells |
 
 ---
+
+## 1. Scaffold the React app
+
+From your project root (e.g. `COMP6300`), run:
+
+```bash
+npm create vite@latest my-app -- --template react
+```
+
+- **`npm create vite@latest`** — runs the Vite scaffolding tool (no global install).
+- **`my-app`** — name of the new folder and project; change it if you like (e.g. `react-app`).
+- **`-- --template react`** — use the React (JavaScript) template; use `react-ts` for TypeScript.
+
+When prompted, you can accept defaults (or choose no to “Git” if the repo is already under Git).
+
+This creates a folder (e.g. `my-app/`) with a full Vite + React setup.
+
+---
+
+## 2. Project layout (after scaffolding)
+
+```
+my-app/
+├── node_modules/     (created by npm install)
+├── public/
+│   └── vite.svg
+├── src/
+│   ├── App.jsx
+│   ├── App.css
+│   ├── main.jsx      (entry: mounts React into index.html)
+│   ├── index.css     (global styles)
+│   └── assets/
+├── index.html        (single HTML shell; script loads src/main.jsx)
+├── package.json
+├── vite.config.js
+└── README.md
+```
+
+---
+
+## 3. Install dependencies and run
+
+```bash
+cd my-app
+npm install
+npm run dev
+```
+
+Then open the URL shown in the terminal (e.g. `http://localhost:5173`). You get hot reload while editing.
+
+---
+
+## 4. Build for production
+
+```bash
+npm run build
+```
+
+Output goes to **`dist/`**. Deploy the contents of `dist/` to any static host (e.g. Netlify, Vercel, or your own server). To preview the production build locally:
+
+```bash
+npm run preview
+```
+
+---
+
+## 5. Summary of npm scripts
+
+| Script        | Purpose                          |
+|---------------|----------------------------------|
+| `npm run dev` | Start dev server (hot reload)     |
+| `npm run build` | Build for production → `dist/`  |
+| `npm run preview` | Serve `dist/` locally         |
+
+---
+
+## Next steps
+
+- Edit `src/App.jsx` and add components under `src/` as needed.
+- When you need routing, SSR, or API routes, consider moving to **Next.js** and reusing your React components.
