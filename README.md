@@ -14,8 +14,9 @@ To see the difference between **imperative** (plain JS, direct DOM) and **declar
 
 ```
 react-basics/
-├── imperative.html    ← Plain HTML + vanilla JS (imperative)
-└── declarative.html   ← HTML + React via CDN (declarative)
+├── imperative.html     ← Plain HTML + vanilla JS (imperative)
+├── declarative.html    ← HTML + React via CDN (declarative)
+└── declarative2.html   ← Same idea, illustrates passing parameters to handlers
 ```
 
 ### 1. Imperative: plain HTML + vanilla JavaScript
@@ -109,12 +110,40 @@ One file: **`react-basics/declarative.html`**. You **describe what the UI should
 
 Here you only declare: “when `count` is X, show this.” React handles DOM updates. This is **React in HTML** — no npm or bundler; next step later is a proper React app, then Next.js.
 
+### 3. Passing parameters: `declarative2.html`
+
+File **`react-basics/declarative2.html`** extends the counter with **named functions** and shows how to **pass parameters** to event handlers.
+
+- **Named function, no parameters:** You can replace an inline handler with a named function and pass it directly to `onClick`:
+
+  ```js
+  function increment() {
+    setCount(count + 1);
+  }
+  // ...
+  <button onClick={increment}>+1</button>
+  ```
+
+  Same behaviour as `onClick={() => setCount(count + 1)}`, but clearer when the logic grows.
+
+- **Passing a parameter:** To pass an argument (e.g. increment by 2), you must wrap the call in an arrow function. Otherwise React would call your function immediately on render instead of on click:
+
+  ```js
+  function incrementBy(value) {
+    setCount(count + value);
+  }
+  // ...
+  <button onClick={() => incrementBy(2)}>+2</button>
+  ```
+
+  So: no args → `onClick={increment}`; with args → `onClick={() => incrementBy(2)}`.
+
 ### How to run the basic examples
 
-- **Option A:** Open `imperative.html` or `declarative.html` directly in the browser (file://). For `declarative.html`, Babel loads from CDN so you need internet.
+- **Option A:** Open `imperative.html`, `declarative.html`, or `declarative2.html` directly in the browser (file://). For the React files, Babel loads from CDN so you need internet.
 - **Option B:** From the repo root:  
   `npx --yes serve .`  
-  Then open e.g. `http://localhost:3000/react-basics/imperative.html` and `http://localhost:3000/react-basics/declarative.html`.
+  Then open e.g. `http://localhost:3000/react-basics/imperative.html`, `.../declarative.html`, and `.../declarative2.html`.
 
 Once this feels clear, you can move on to a Create React App or Vite React project, and from there to **Next.js**.
 
