@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Imperative counter</title>
+</head>
+<body>
+  <h1>Imperative (plain JS)</h1>
+  <p>Count: <span id="count">0</span></p>
+  <button id="inc">+1</button>
+  <button id="dec">-1</button>
+
+  <script>
+    let count = 0;
+    const countEl = document.getElementById("count");
+    const incBtn = document.getElementById("inc");
+    const decBtn = document.getElementById("dec");
+
+    function updateUI() {
+      countEl.textContent = count;
+    }
+
+    incBtn.addEventListener("click", function () {
+      count++;
+      updateUI();
+    });
+    decBtn.addEventListener("click", function () {
+      count--;
+      updateUI();
+    });
+
+    updateUI();
+  </script>
+</body>
+</html>
