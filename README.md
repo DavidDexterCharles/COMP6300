@@ -121,7 +121,7 @@ File **`react-basics/declarative2.html`** extends the counter with **named funct
     setCount(count + 1);
   }
   // ...
-  <button onClick={increment}>+1</button>
+  <button onClick={increment}>+1</button>;
   ```
 
   Same behaviour as `onClick={() => setCount(count + 1)}`, but clearer when the logic grows.
@@ -133,7 +133,7 @@ File **`react-basics/declarative2.html`** extends the counter with **named funct
     setCount(count + value);
   }
   // ...
-  <button onClick={() => incrementBy(2)}>+2</button>
+  <button onClick={() => incrementBy(2)}>+2</button>;
   ```
 
   So: no args → `onClick={increment}`; with args → `onClick={() => incrementBy(2)}`.
@@ -141,10 +141,14 @@ File **`react-basics/declarative2.html`** extends the counter with **named funct
 ### How to run the basic examples
 
 - **Option A:** Open `imperative.html`, `declarative.html`, or `declarative2.html` directly in the browser (file://). For the React files, Babel loads from CDN so you need internet.
-- **Option B:** From the repo root:  
-  `npx --yes serve .`  
-  Then open e.g. `http://localhost:3000/react-basics/imperative.html`, `.../declarative.html`, and `.../declarative2.html`.
+- **Option B:** From the repo root run:
 
-Once this feels clear, you can move on to a Create React App or Vite React project, and from there to **Next.js**.
+  ```bash
+  npx --yes serve .
+  ```
+
+  This runs the **serve** package (a small static file server) without installing it globally: **npx** fetches and runs the package, **--yes** skips the install prompt, and **.** means “serve the current directory.” You’ll get a local URL (e.g. `http://localhost:3000`). Then open e.g. `http://localhost:3000/react-basics/imperative.html`, `.../declarative.html`, and `.../declarative2.html`.
+
+  **Don’t have `npx`?** `npx` is included with **Node.js** (it ships with npm). Install Node.js from [nodejs.org](https://nodejs.org/) (LTS is fine). After installation, restart your terminal and run `npx --yes serve .` again.
 
 ---
