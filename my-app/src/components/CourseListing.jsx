@@ -1,38 +1,43 @@
-import { useState } from 'react'
-import Course from './Course'
+import { useState } from "react";
+import Course from "./Course";
 
-export default function CourseListing({ courses, onCreate, onUpdate, onDelete }) {
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editingCourse, setEditingCourse] = useState(null)
+export default function CourseListing({
+  courses,
+  onCreate,
+  onUpdate,
+  onDelete,
+}) {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingCourse, setEditingCourse] = useState(null);
 
   function openCreate() {
-    setEditingCourse(null)
-    setModalOpen(true)
+    setEditingCourse(null);
+    setModalOpen(true);
   }
 
   function openEdit(course) {
-    setEditingCourse(course)
-    setModalOpen(true)
+    setEditingCourse(course);
+    setModalOpen(true);
   }
 
   function closeModal() {
-    setModalOpen(false)
-    setEditingCourse(null)
+    setModalOpen(false);
+    setEditingCourse(null);
   }
 
   function handleSubmit(e) {
-    e.preventDefault()
-    const form = e.target
-    const code = form.code.value.trim()
-    const title = form.title.value.trim()
-    const category = form.category?.value?.trim() || 'Core'
-    if (!code || !title) return
+    e.preventDefault();
+    const form = e.target;
+    const code = form.code.value.trim();
+    const title = form.title.value.trim();
+    const category = form.category?.value?.trim() || "Core";
+    if (!code || !title) return;
     if (editingCourse) {
-      onUpdate(editingCourse.id, { code, title, category })
+      onUpdate(editingCourse.id, { code, title, category });
     } else {
-      onCreate({ code, title, category })
+      onCreate({ code, title, category });
     }
-    closeModal()
+    closeModal();
   }
 
   return (
@@ -47,43 +52,48 @@ export default function CourseListing({ courses, onCreate, onUpdate, onDelete })
         </button>
         {courses.map((course) => (
           <div key={course.id} className="w-[280px]">
-            <Course
-              course={course}
-              onEdit={openEdit}
-              onDelete={onDelete}
-            />
+            <Course course={course} onEdit={openEdit} onDelete={onDelete} />
           </div>
         ))}
       </div>
 
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-10" onClick={closeModal}>
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-10"
+          onClick={closeModal}
+        >
           <div
             className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-lg font-semibold text-slate-800 mb-4">
-              {editingCourse ? 'Edit course' : 'Create course'}
+              {editingCourse ? "Edit course" : "Create course"}
             </h2>
             <form onSubmit={handleSubmit}>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Course code</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Course code
+              </label>
               <input
                 name="code"
                 defaultValue={editingCourse?.code}
                 required
                 className="w-full px-3 py-2 border border-slate-300 rounded mb-3"
               />
-              <label className="block text-sm font-medium text-slate-700 mb-1">Course title</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Course title
+              </label>
               <input
                 name="title"
                 defaultValue={editingCourse?.title}
                 required
                 className="w-full px-3 py-2 border border-slate-300 rounded mb-3"
               />
-              <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Category
+              </label>
               <select
                 name="category"
-                defaultValue={editingCourse?.category ?? 'Core'}
+                defaultValue={editingCourse?.category ?? "Core"}
                 className="w-full px-3 py-2 border border-slate-300 rounded mb-4"
               >
                 <option value="Core">Core</option>
@@ -101,7 +111,7 @@ export default function CourseListing({ courses, onCreate, onUpdate, onDelete })
                   type="submit"
                   className="px-4 py-2 rounded bg-slate-700 text-white hover:bg-slate-800"
                 >
-                  {editingCourse ? 'Save' : 'Create'}
+                  {editingCourse ? "Save" : "Create"}
                 </button>
               </div>
             </form>
@@ -109,5 +119,5 @@ export default function CourseListing({ courses, onCreate, onUpdate, onDelete })
         </div>
       )}
     </>
-  )
+  );
 }

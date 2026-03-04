@@ -68,42 +68,39 @@ This creates a folder (e.g. `my-app/`) with a full Vite + React setup.
 
 ---
 
-## 2. Install dependencies (including Tailwind CSS)
+## 2. Install dependencies (including Tailwind CSS v4)
 
 From your project root, run:
 
 ```bash
 cd my-app
 npm install
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init -p
+npm install -D tailwindcss @tailwindcss/vite
 ```
 
-Then configure Tailwind to scan your React files. Open `my-app/tailwind.config.js` and replace its contents with:
+**Tailwind v4** does not use `tailwindcss init` or `tailwind.config.js`. Configure it as follows.
+
+**1. Add the Vite plugin** — In `my-app/vite.config.js`, add the Tailwind plugin:
 
 ```js
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+})
 ```
 
-Replace the contents of `my-app/src/index.css` with Tailwind’s directives:
+**2. Import Tailwind in CSS** — At the top of `my-app/src/index.css`, add:
 
 ```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* your existing or custom global styles below */
 ```
 
-You can add custom global styles below these lines if needed.
+Tailwind v4 auto-detects content (no `content` array). Optional: use `@theme { ... }` in CSS for custom design tokens. You do **not** need `postcss.config.js` or `tailwind.config.js` when using the Vite plugin.
 
 ---
 
@@ -118,13 +115,11 @@ my-app/
 │   ├── App.jsx
 │   ├── App.css
 │   ├── main.jsx
-│   ├── index.css          ← Tailwind directives here
+│   ├── index.css          ← @import "tailwindcss"; here
 │   └── components/        ← you will add this folder
 ├── index.html
 ├── package.json
-├── vite.config.js
-├── tailwind.config.js     ← added by npx tailwindcss init -p
-├── postcss.config.js      ← added by npx tailwindcss init -p
+├── vite.config.js         ← Tailwind added via @tailwindcss/vite
 └── README.md
 ```
 
@@ -181,7 +176,7 @@ Follow these steps to clear the default Vite content and build a small course li
 
 1. **`src/App.jsx`** — Remove the default Vite markup (logo, “Vite + React” content, etc.). You will replace it with a minimal root that only imports and renders the course app component (see 7.5).
 2. **`src/App.css`** — Remove or simplify default styles; layout and cards will use Tailwind.
-3. **`src/index.css`** — Keep the Tailwind directives you added in step 2; add any extra global styles only if needed.
+3. **`src/index.css`** — Keep the `@import "tailwindcss";` you added in step 2; add any extra global styles only if needed.
 
 ---
 
@@ -285,118 +280,9 @@ src/
 
 ### 7.6 Copy-paste implementation
 
-Use a **lighter theme** (e.g. light background, subtle borders) and **Tailwind CSS** for all layout and styling. Below are code blocks you can copy into the corresponding files.
+Use a **lighter theme** (e.g. light background, subtle borders) and **Tailwind CSS** for all layout and styling. **Paste in this order** so the app does not break: create the component files first (1–4), then update `App.jsx` and `App.css` (5–6).
 
-**`src/App.jsx`** (minimal entry):
-
-```jsx
-import './App.css'
-import CourseManager from './components/CourseManager'
-
-function App() {
-  return (
-    <div className="min-h-screen bg-slate-50">
-      <CourseManager />
-    </div>
-  )
-}
-
-export default App
-```
-
-**`src/App.css`** — keep minimal or empty; e.g.:
-
-```css
-/* Add any app-specific overrides here if needed */
-```
-
-**`src/components/CourseManager.jsx`** — state, filter, and layout:
-
-```jsx
-import { useState, useMemo } from 'react'
-import CourseSearch from './CourseSearch'
-import CourseListing from './CourseListing'
-
-const INITIAL_COURSES = [
-  { id: 1, code: 'COMP 6501', title: 'Research Methods, Entrepreneurship and Intellectual Property', category: 'Core' },
-  { id: 2, code: 'COMP 6925', title: 'Applied Operations Research', category: 'Core' },
-  { id: 3, code: 'STAT 6105', title: 'Probability and Statistical Methods for Data Analytics', category: 'Core' },
-  { id: 4, code: 'STAT 6106', title: 'Statistical Inference for Data Analytics', category: 'Core' },
-  { id: 5, code: 'COMP 6930', title: 'Machine Learning and Data Mining', category: 'Core' },
-  { id: 6, code: 'COMP 6940', title: 'Big Data and Visual Analytics', category: 'Core' },
-  { id: 7, code: 'STAT 6005', title: 'Research Project', category: 'Core' },
-  { id: 8, code: 'COMP 6300', title: 'Advanced Internet Technologies', category: 'Elective' },
-  { id: 9, code: 'COMP 6401', title: 'Advanced Algorithms', category: 'Elective' },
-  { id: 10, code: 'COMP 6802', title: 'Distributed and Parallel Database Systems', category: 'Elective' },
-  { id: 11, code: 'COMP 6905', title: 'Cloud Technologies', category: 'Elective' },
-  { id: 12, code: 'STAT 6160', title: 'Data Analysis', category: 'Elective' },
-  { id: 13, code: 'STAT 6170', title: 'Multivariate Analysis', category: 'Elective' },
-  { id: 14, code: 'STAT 6181', title: 'Computational Statistics I', category: 'Elective' },
-  { id: 15, code: 'STAT 6182', title: 'Computational Statistics II', category: 'Elective' },
-]
-
-export default function CourseManager() {
-  const [courses, setCourses] = useState(INITIAL_COURSES)
-  const [searchTerm, setSearchTerm] = useState('')
-
-  const filteredCourses = useMemo(() => {
-    if (!searchTerm.trim()) return courses
-    const term = searchTerm.toLowerCase().trim()
-    return courses.filter(
-      (c) =>
-        c.code.toLowerCase().includes(term) ||
-        c.title.toLowerCase().includes(term)
-    )
-  }, [courses, searchTerm])
-
-  function handleCreate(course) {
-    setCourses((prev) => [...prev, { ...course, id: Math.max(0, ...prev.map((c) => c.id)) + 1 }])
-  }
-
-  function handleUpdate(id, updates) {
-    setCourses((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, ...updates } : c))
-    )
-  }
-
-  function handleDelete(id) {
-    setCourses((prev) => prev.filter((c) => c.id !== id))
-  }
-
-  return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-2xl font-semibold text-slate-800 mb-6">Course list</h1>
-      <CourseSearch value={searchTerm} onChange={setSearchTerm} />
-      <CourseListing
-        courses={filteredCourses}
-        onCreate={handleCreate}
-        onUpdate={handleUpdate}
-        onDelete={handleDelete}
-      />
-    </div>
-  )
-}
-```
-
-**`src/components/CourseSearch.jsx`**:
-
-```jsx
-export default function CourseSearch({ value, onChange }) {
-  return (
-    <div className="mb-6">
-      <input
-        type="text"
-        placeholder="Search by course code or title..."
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full max-w-md px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
-      />
-    </div>
-  )
-}
-```
-
-**`src/components/Course.jsx`** (card for one course):
+**1. `src/components/Course.jsx`** (card for one course):
 
 ```jsx
 export default function Course({ course, onEdit, onDelete }) {
@@ -430,7 +316,25 @@ export default function Course({ course, onEdit, onDelete }) {
 }
 ```
 
-**`src/components/CourseListing.jsx`** (tiles, Create/Edit modals, Delete):
+**2. `src/components/CourseSearch.jsx`**:
+
+```jsx
+export default function CourseSearch({ value, onChange }) {
+  return (
+    <div className="mb-6">
+      <input
+        type="text"
+        placeholder="Search by course code or title..."
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full max-w-md px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+      />
+    </div>
+  )
+}
+```
+
+**3. `src/components/CourseListing.jsx`** (tiles, Create/Edit modals, Delete):
 
 ```jsx
 import { useState } from 'react'
@@ -546,6 +450,97 @@ export default function CourseListing({ courses, onCreate, onUpdate, onDelete })
     </>
   )
 }
+```
+
+**4. `src/components/CourseManager.jsx`** (state, filter, and layout):
+
+```jsx
+import { useState, useMemo } from 'react'
+import CourseSearch from './CourseSearch'
+import CourseListing from './CourseListing'
+
+const INITIAL_COURSES = [
+  { id: 1, code: 'COMP 6501', title: 'Research Methods, Entrepreneurship and Intellectual Property', category: 'Core' },
+  { id: 2, code: 'COMP 6925', title: 'Applied Operations Research', category: 'Core' },
+  { id: 3, code: 'STAT 6105', title: 'Probability and Statistical Methods for Data Analytics', category: 'Core' },
+  { id: 4, code: 'STAT 6106', title: 'Statistical Inference for Data Analytics', category: 'Core' },
+  { id: 5, code: 'COMP 6930', title: 'Machine Learning and Data Mining', category: 'Core' },
+  { id: 6, code: 'COMP 6940', title: 'Big Data and Visual Analytics', category: 'Core' },
+  { id: 7, code: 'STAT 6005', title: 'Research Project', category: 'Core' },
+  { id: 8, code: 'COMP 6300', title: 'Advanced Internet Technologies', category: 'Elective' },
+  { id: 9, code: 'COMP 6401', title: 'Advanced Algorithms', category: 'Elective' },
+  { id: 10, code: 'COMP 6802', title: 'Distributed and Parallel Database Systems', category: 'Elective' },
+  { id: 11, code: 'COMP 6905', title: 'Cloud Technologies', category: 'Elective' },
+  { id: 12, code: 'STAT 6160', title: 'Data Analysis', category: 'Elective' },
+  { id: 13, code: 'STAT 6170', title: 'Multivariate Analysis', category: 'Elective' },
+  { id: 14, code: 'STAT 6181', title: 'Computational Statistics I', category: 'Elective' },
+  { id: 15, code: 'STAT 6182', title: 'Computational Statistics II', category: 'Elective' },
+]
+
+export default function CourseManager() {
+  const [courses, setCourses] = useState(INITIAL_COURSES)
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const filteredCourses = useMemo(() => {
+    if (!searchTerm.trim()) return courses
+    const term = searchTerm.toLowerCase().trim()
+    return courses.filter(
+      (c) =>
+        c.code.toLowerCase().includes(term) ||
+        c.title.toLowerCase().includes(term)
+    )
+  }, [courses, searchTerm])
+
+  function handleCreate(course) {
+    setCourses((prev) => [...prev, { ...course, id: Math.max(0, ...prev.map((c) => c.id)) + 1 }])
+  }
+
+  function handleUpdate(id, updates) {
+    setCourses((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, ...updates } : c))
+    )
+  }
+
+  function handleDelete(id) {
+    setCourses((prev) => prev.filter((c) => c.id !== id))
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <h1 className="text-2xl font-semibold text-slate-800 mb-6">Course list</h1>
+      <CourseSearch value={searchTerm} onChange={setSearchTerm} />
+      <CourseListing
+        courses={filteredCourses}
+        onCreate={handleCreate}
+        onUpdate={handleUpdate}
+        onDelete={handleDelete}
+      />
+    </div>
+  )
+}
+```
+
+**5. `src/App.jsx`** (minimal entry):
+
+```jsx
+import './App.css'
+import CourseManager from './components/CourseManager'
+
+function App() {
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <CourseManager />
+    </div>
+  )
+}
+
+export default App
+```
+
+**6. `src/App.css`** — keep minimal or empty; e.g.:
+
+```css
+/* Add any app-specific overrides here if needed */
 ```
 
 ---

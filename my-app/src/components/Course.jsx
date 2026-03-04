@@ -25,5 +25,5 @@ export default function Course({ course, onEdit, onDelete }) {
         </button>
       </div>
     </div>
-  )
+  );
 }
