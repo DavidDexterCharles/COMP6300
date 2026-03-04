@@ -41,11 +41,11 @@ This repo uses the **production** way to build React apps: scaffold with a build
 
 **Useful nvm commands**
 
-| Command | Purpose |
-|--------|--------|
-| `nvm list` | Show installed versions |
-| `nvm install 22` | Install Node 22 |
-| `nvm use 22` | Use Node 22 in this shell |
+| Command                | Purpose                              |
+| ---------------------- | ------------------------------------ |
+| `nvm list`             | Show installed versions              |
+| `nvm install 22`       | Install Node 22                      |
+| `nvm use 22`           | Use Node 22 in this shell            |
 | `nvm alias default 22` | Use Node 22 by default in new shells |
 
 ---
@@ -117,11 +117,11 @@ npm run preview
 
 ## 5. Summary of npm scripts
 
-| Script        | Purpose                          |
-|---------------|----------------------------------|
-| `npm run dev` | Start dev server (hot reload)     |
-| `npm run build` | Build for production → `dist/`  |
-| `npm run preview` | Serve `dist/` locally         |
+| Script            | Purpose                        |
+| ----------------- | ------------------------------ |
+| `npm run dev`     | Start dev server (hot reload)  |
+| `npm run build`   | Build for production → `dist/` |
+| `npm run preview` | Serve `dist/` locally          |
 
 ---
 
