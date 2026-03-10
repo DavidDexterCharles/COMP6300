@@ -82,7 +82,7 @@ App
 - A **function** (or class) that returns **JSX**. In practice a function is written that describes the UI for a given set of inputs (props and state). React calls that function whenever it needs to render or re-render that part of the tree. The return value is JSX — a syntax that looks like HTML but compiles to `React.createElement` calls, i.e. plain JavaScript objects describing elements and components. So a component is really “a recipe for a piece of UI”: same inputs should give the same output (ideally pure), and React handles when to run the recipe and how to apply the result to the DOM.
 - Name must start with a capital letter so React treats it as a component, not an HTML tag. For example, `<Course />` is treated as the `Course` component; `<course />` would be treated as a lowercase HTML element (invalid in HTML5 and not the intended component). Same for `<CourseListing />` vs `<courselisting />`.
 
-### Function components (used everywhere in this app)
+### Function components
 
 **Example from the codebase — `Course.jsx`:**
 
