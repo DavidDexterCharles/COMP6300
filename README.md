@@ -636,9 +636,9 @@ When done, you should be able to view all courses, search by code or title, and 
 
 ---
 
-### 7.8 Optional: Extra code matching slides.md
+### 7.8 Activity: Extra code matching slides.md
 
-The teaching slides in **`slides.md`** (at the repo root) reference extra code that illustrates routing, the `children` prop, and arrow-function components. If you are starting from the copy-paste implementation in 7.6, follow these steps to add that code so the app matches the slides. If the repo already includes these files, you can skip or use this as a reference.
+The teaching slides in **`slides.md`** (at the repo root) reference extra code that illustrates routing, the `children` prop, and arrow-function components. **Complete the following steps yourself** so your app matches the slides. The starter codebase does not include this code — you will add routing (Home + About), the `Card` and `CategoryBadge` components, and update `Course` to use them.
 
 **A. Routing (Home + About)**
 
