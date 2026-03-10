@@ -1,11 +1,13 @@
-import Card from "./Card";
-import CategoryBadge from "./CategoryBadge";
-
 export default function Course({ course, onEdit, onDelete }) {
   return (
-    <Card title={course.code}>
+    <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
+      <div className="font-medium text-slate-800">{course.code}</div>
       <div className="text-sm text-slate-600 mt-1">{course.title}</div>
-      {course.category && <CategoryBadge label={course.category} />}
+      {course.category && (
+        <span className="inline-block mt-2 text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+          {course.category}
+        </span>
+      )}
       <div className="mt-3 flex gap-2">
         <button
           type="button"
@@ -22,6 +24,6 @@ export default function Course({ course, onEdit, onDelete }) {
           Delete
         </button>
       </div>
-    </Card>
+    </div>
   );
 }
