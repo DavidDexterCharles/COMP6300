@@ -320,7 +320,7 @@ export default function Course({ course, onEdit, onDelete }) {
 
 ### Why destructure?
 
-- Cleaner code and explicit “API” of the component.
+- Cleaner code and an explicit surface for the component (what it accepts is clear from the parameter list).
 - Used for **props** and **state** throughout this app.
 
 ### Destructuring props
@@ -354,26 +354,12 @@ function Course({ course, onEdit, onDelete }) {
 
 ### Destructuring with defaults
 
-**In `CourseListing.jsx` (form handling):**
-
-```jsx
-const category = form.category?.value?.trim() || "Core";
-```
-
 **Typical pattern for optional props:**
 
 ```jsx
 function Badge({ label, variant = "default" }) {
   return <span className={variant}>{label}</span>;
 }
-```
-
-### Nested destructuring (when useful)
-
-```jsx
-const { course: { code, title, category } } = props;
-// or in parameter list:
-function CourseCard({ course: { code, title, category } }) { ... }
 ```
 
 ---
