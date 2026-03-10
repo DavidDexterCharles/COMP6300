@@ -34,7 +34,7 @@ Use this document as the source for slide content. Code examples are taken from 
 ### What is React?
 
 - **Library** for building user interfaces (not a full framework).
-- **Declarative:** The UI is described in terms of *what* it should look like for a given state; React updates the DOM.
+- **Declarative:** The UI is described in terms of _what_ it should look like for a given state; React updates the DOM.
 - **Component-based:** UIs are built from reusable, composable components.
 - **Single source of truth:** State lives in one place; the UI is a function of state.
 
@@ -42,23 +42,23 @@ Use this document as the source for slide content. Code examples are taken from 
 
 ```jsx
 // main.jsx
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.jsx";
 
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById("root")).render(
   <StrictMode>
     <App />
   </StrictMode>,
-)
+);
 ```
 
-- **`createRoot` + `render`** — The React 18+ way to mount the app. The DOM node (here `document.getElementById("root")`) is passed to `createRoot`, which returns a *root* object. Calling `root.render(<App />)` tells React to take over that DOM node and render the component tree inside it. React then manages updates: when state or props change, it re-renders only what’s needed and updates the real DOM (this is the “virtual DOM” idea). In React 17 and earlier, the API was `ReactDOM.render(<App />, document.getElementById("root"))`; the new API enables React 18 features like concurrent rendering and is the one to use going forward.
+- **`createRoot` + `render`** — The React 18+ way to mount the app. The DOM node (here `document.getElementById("root")`) is passed to `createRoot`, which returns a _root_ object. Calling `root.render(<App />)` tells React to take over that DOM node and render the component tree inside it. React then manages updates: when state or props change, it re-renders only what’s needed and updates the real DOM (this is the “virtual DOM” idea). In React 17 and earlier, the API was `ReactDOM.render(<App />, document.getElementById("root"))`; the new API enables React 18 features like concurrent rendering and is the one to use going forward.
 - **`StrictMode`** — A development-only wrapper that helps write safer code. It doesn’t render any extra UI.
-  - In development, React intentionally *double-invokes* certain functions (e.g. component bodies and some effect-related logic) so that side effects and impure code become visible.
+  - In development, React intentionally _double-invokes_ certain functions (e.g. component bodies and some effect-related logic) so that side effects and impure code become visible.
   - **Why double-invoke?** If a component body does side effects during render (e.g. mutates a global variable — changing something outside the component, like `window.someCounter = (window.someCounter || 0) + 1`; or writes to `localStorage`; or triggers a network request), running it twice makes the bug obvious: duplicate requests, wrong counts, or inconsistent state.
-  - **Where to put mutations and side effects:** React’s model is that the component function should be *pure* for a given props/state (same in, same out). Any mutation or side effect — e.g. updating a global, writing to storage, or fetching data — should live in **`useEffect`** (or similar), not in the render path. That way React controls when they run (after commit, with cleanup), and StrictMode’s double-invoke won’t run them twice in the same way.
+  - **Where to put mutations and side effects:** React’s model is that the component function should be _pure_ for a given props/state (same in, same out). Any mutation or side effect — e.g. updating a global, writing to storage, or fetching data — should live in **`useEffect`** (or similar), not in the render path. That way React controls when they run (after commit, with cleanup), and StrictMode’s double-invoke won’t run them twice in the same way.
   - Double-invoking doesn’t change behaviour in production; it only helps find code that breaks the pure-render assumption.
   - StrictMode also warns about deprecated APIs (e.g. legacy string refs and other deprecated patterns) and highlights potential problems with concurrent rendering.
   - In production builds, StrictMode has no effect, so it’s safe to leave it in the tree.
@@ -102,25 +102,28 @@ export default function Course({ course, onEdit, onDelete }) {
 - **Reusable:** Rendered in a `.map()` in `CourseListing` for each course. Example from the codebase:
 
   ```jsx
-  {courses.map((course) => (
-    <div key={course.id} className="w-[280px]">
-      <Course course={course} onEdit={openEdit} onDelete={onDelete} />
-    </div>
-  ))}
+  {
+    courses.map((course) => (
+      <div key={course.id} className="w-[280px]">
+        <Course course={course} onEdit={openEdit} onDelete={onDelete} />
+      </div>
+    ));
+  }
   ```
 
   Each item gets a unique `key` (here `course.id`) so React can track list items correctly across re-renders.
 
   **JS Side Note: Arrow functions** — Arrow functions provide a shorter syntax for writing functions. In general JavaScript they also preserve `this` from the enclosing scope (no need to `.bind(this)`), but in **function components** there is no `this` — the main benefits here are concise callbacks and easy passing of arguments. Sample examples from this codebase:
-
   - **Array rendering** — In `CourseListing.jsx`, each course is rendered via an arrow function passed to `.map()`: it receives `course` and returns the JSX for one list item.
 
     ```jsx
-    {courses.map((course) => (
-      <div key={course.id} className="w-[280px]">
-        <Course course={course} onEdit={openEdit} onDelete={onDelete} />
-      </div>
-    ))}
+    {
+      courses.map((course) => (
+        <div key={course.id} className="w-[280px]">
+          <Course course={course} onEdit={openEdit} onDelete={onDelete} />
+        </div>
+      ));
+    }
     ```
 
   - **Event handlers (passing arguments)** — In `Course.jsx`, the handler must pass `course` or `course.id` into the parent callback. An arrow function wraps the call so the correct argument is passed when the button is clicked.
@@ -173,8 +176,43 @@ export default function CourseSearch({ value, onChange }) {
 
 ### Key ideas
 
-- **Composition:** Small components are composed into larger ones (`Course` inside `CourseListing` inside `CourseManager`).
-- **Default export:** `export default function Course` — imported as `import Course from "./Course"`.
+- **Composition:** Small components are composed into larger ones (`Course` inside `CourseListing` inside `CourseManager`). Example from the codebase:
+
+  ```jsx
+  // CourseManager.jsx — composes CourseSearch and CourseListing
+  import CourseSearch from "./CourseSearch";
+  import CourseListing from "./CourseListing";
+  // ...
+  return (
+    <div>
+      <CourseSearch value={searchTerm} onChange={setSearchTerm} />
+      <CourseListing courses={filteredCourses} onCreate={...} onUpdate={...} onDelete={...} />
+    </div>
+  );
+  ```
+
+  ```jsx
+  // CourseListing.jsx — composes Course for each item
+  import Course from "./Course";
+  // ...
+  {courses.map((course) => (
+    <div key={course.id}>
+      <Course course={course} onEdit={openEdit} onDelete={onDelete} />
+    </div>
+  ))}
+  ```
+
+- **Default export:** Components use `export default` and are imported by name. Example from the codebase:
+
+  ```jsx
+  // Course.jsx
+  export default function Course({ course, onEdit, onDelete }) { ... }
+  ```
+
+  ```jsx
+  // CourseListing.jsx — imports Course
+  import Course from "./Course";
+  ```
 
 ---
 
@@ -210,16 +248,16 @@ export default function Course({ course, onEdit, onDelete }) {
 }
 ```
 
-- The child doesn’t know *where* the data lives or *how* edit/delete work — it just calls the callbacks.
+- The child doesn’t know _where_ the data lives or _how_ edit/delete work — it just calls the callbacks.
 
 ### Props can be anything
 
-| Type       | Example in this app                          |
-|-----------|----------------------------------------------|
+| Type      | Example in this app                              |
+| --------- | ------------------------------------------------ |
 | Primitive | `value={searchTerm}`, `onChange={setSearchTerm}` |
-| Object    | `course={course}`                            |
-| Function  | `onEdit={openEdit}`, `onDelete={onDelete}`   |
-| Array     | `courses={filteredCourses}`                   |
+| Object    | `course={course}`                                |
+| Function  | `onEdit={openEdit}`, `onDelete={onDelete}`       |
+| Array     | `courses={filteredCourses}`                      |
 
 ### Children (special prop)
 
@@ -233,7 +271,7 @@ function Card({ title, children }) {
   );
 }
 
-<Card title="Course">Content here</Card>
+<Card title="Course">Content here</Card>;
 ```
 
 - `children` is the content between opening and closing tags.
@@ -253,7 +291,11 @@ function Card({ title, children }) {
 
 ```jsx
 function Course(props) {
-  return <div>{props.course.code} — {props.course.title}</div>;
+  return (
+    <div>
+      {props.course.code} — {props.course.title}
+    </div>
+  );
 }
 ```
 
@@ -338,8 +380,8 @@ const [editingCourse, setEditingCourse] = useState(null);
 **Wrong (mutation):**
 
 ```js
-courses.push(newCourse);  // ❌ Don’t mutate
-setCourses(courses);      // React may not re-render
+courses.push(newCourse); // ❌ Don’t mutate
+setCourses(courses); // React may not re-render
 ```
 
 **Right (new reference):**
@@ -370,7 +412,7 @@ setModalOpen((prev) => !prev);
 // Update one item in list (CourseManager.jsx)
 function handleUpdate(id, updates) {
   setCourses((prev) =>
-    prev.map((c) => (c.id === id ? { ...c, ...updates } : c))
+    prev.map((c) => (c.id === id ? { ...c, ...updates } : c)),
   );
 }
 ```
@@ -410,10 +452,7 @@ function handleUpdate(id, updates) {
 **From `CourseSearch.jsx`:**
 
 ```jsx
-<input
-  value={value}
-  onChange={(e) => onChange(e.target.value)}
-/>
+<input value={value} onChange={(e) => onChange(e.target.value)} />
 ```
 
 - **Controlled component:** `value` comes from state; every keystroke updates state via `onChange`. Single source of truth.
@@ -454,7 +493,6 @@ function handleSubmit(e) {
 
 ## 7. useEffect — Side Effects After Render
 
-
 - The component function should be pure: given props and state, it returns JSX. Side effects (fetch, subscriptions, DOM updates, timers) should not run during render. They run **after** render via **useEffect**, so React can control when they run and clean them up.
 
 ### useEffect signature
@@ -462,8 +500,10 @@ function handleSubmit(e) {
 ```js
 useEffect(() => {
   // effect code
-  return () => { /* optional cleanup */ };
-}, [dep1, dep2]);  // dependency array
+  return () => {
+    /* optional cleanup */
+  };
+}, [dep1, dep2]); // dependency array
 ```
 
 - **Runs after** the component has committed to the DOM (after paint).
@@ -476,7 +516,7 @@ useEffect(() => {
   fetch("/api/courses")
     .then((res) => res.json())
     .then((data) => setCourses(data));
-}, []);  // empty = only on mount
+}, []); // empty = only on mount
 ```
 
 ### Run when a value changes
@@ -492,7 +532,7 @@ useEffect(() => {
 ```jsx
 useEffect(() => {
   const id = setInterval(() => setCount((c) => c + 1), 1000);
-  return () => clearInterval(id);  // cleanup on unmount or when deps change
+  return () => clearInterval(id); // cleanup on unmount or when deps change
 }, []);
 ```
 
@@ -504,7 +544,7 @@ useEffect(() => {
 
 ## 8. Spread Operator in React
 
-**JS Side Note: Spread/rest** — The `...` syntax is ES6+: *spread* copies enumerable properties from an object or elements from an array into a new object/array (used below for immutable updates); *rest* collects remaining arguments or properties (e.g. `const { a, ...rest } = obj`). In React, spread is common when updating state or passing props.
+**JS Side Note: Spread/rest** — The `...` syntax is ES6+: _spread_ copies enumerable properties from an object or elements from an array into a new object/array (used below for immutable updates); _rest_ collects remaining arguments or properties (e.g. `const { a, ...rest } = obj`). In React, spread is common when updating state or passing props.
 
 ### Spreading objects (updating state immutably)
 
@@ -518,9 +558,7 @@ setCourses((prev) => [
 ]);
 
 // Update one course (new array, spread old course + updates)
-setCourses((prev) =>
-  prev.map((c) => (c.id === id ? { ...c, ...updates } : c))
-);
+setCourses((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
 
 // Delete (filter gives new array; no spread needed)
 setCourses((prev) => prev.filter((c) => c.id !== id));
@@ -655,7 +693,9 @@ useEffect(() => {
     }
   }
   load();
-  return () => { cancelled = true; };  // avoid setState after unmount
+  return () => {
+    cancelled = true;
+  }; // avoid setState after unmount
 }, []);
 ```
 
@@ -706,16 +746,17 @@ export function CourseProvider({ children }) {
     setCourses,
     searchTerm,
     setSearchTerm,
-    createCourse: (course) => setCourses((prev) => [...prev, { ...course, id: Date.now() }]),
+    createCourse: (course) =>
+      setCourses((prev) => [...prev, { ...course, id: Date.now() }]),
     updateCourse: (id, updates) =>
-      setCourses((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c))),
+      setCourses((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+      ),
     deleteCourse: (id) => setCourses((prev) => prev.filter((c) => c.id !== id)),
   };
 
   return (
-    <CourseContext.Provider value={value}>
-      {children}
-    </CourseContext.Provider>
+    <CourseContext.Provider value={value}>{children}</CourseContext.Provider>
   );
 }
 
@@ -749,7 +790,14 @@ function App() {
 import { useCourses } from "../contexts/CourseContext";
 
 function CourseListing() {
-  const { courses, createCourse, updateCourse, deleteCourse, searchTerm, setSearchTerm } = useCourses();
+  const {
+    courses,
+    createCourse,
+    updateCourse,
+    deleteCourse,
+    searchTerm,
+    setSearchTerm,
+  } = useCourses();
   // no need to receive these as props
 }
 ```
@@ -846,14 +894,14 @@ function CourseDetail() {
 
 ### Key files in this codebase
 
-| File             | Concepts demonstrated                          |
-|------------------|--------------------------------------------------|
-| `App.jsx`        | Root component, composition                     |
-| `main.jsx`       | Entry, StrictMode, createRoot                    |
-| `CourseManager.jsx` | useState, useMemo, lifting state, handlers   |
-| `CourseListing.jsx` | useState, events (onSubmit, onClick), props  |
-| `Course.jsx`     | Props, destructuring, callbacks                 |
-| `CourseSearch.jsx` | Controlled input, props                        |
+| File                | Concepts demonstrated                       |
+| ------------------- | ------------------------------------------- |
+| `App.jsx`           | Root component, composition                 |
+| `main.jsx`          | Entry, StrictMode, createRoot               |
+| `CourseManager.jsx` | useState, useMemo, lifting state, handlers  |
+| `CourseListing.jsx` | useState, events (onSubmit, onClick), props |
+| `Course.jsx`        | Props, destructuring, callbacks             |
+| `CourseSearch.jsx`  | Controlled input, props                     |
 
 ### Checklist for mid-level React
 
@@ -881,13 +929,13 @@ function CourseDetail() {
 
 ## Quick reference: hooks used in this app
 
-| Hook       | Purpose in this app                          |
-|-----------|-----------------------------------------------|
-| useState  | courses, searchTerm, modalOpen, editingCourse |
-| useMemo   | filteredCourses from courses + searchTerm     |
-| (useEffect) | (Could load courses from API on mount)     |
-| (useContext) | (Could provide courses/actions globally)   |
+| Hook         | Purpose in this app                           |
+| ------------ | --------------------------------------------- |
+| useState     | courses, searchTerm, modalOpen, editingCourse |
+| useMemo      | filteredCourses from courses + searchTerm     |
+| (useEffect)  | (Could load courses from API on mount)        |
+| (useContext) | (Could provide courses/actions globally)      |
 
 ---
 
-*Slides content derived from the Course Manager app in `my-app/`. Use the repo as the live coding and demo source while presenting.*
+_Slides content derived from the Course Manager app in `my-app/`. Use the repo as the live coding and demo source while presenting._
