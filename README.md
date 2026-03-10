@@ -636,7 +636,162 @@ When done, you should be able to view all courses, search by code or title, and 
 
 ---
 
-## Next steps
+### 7.8 Optional: Extra code matching slides.md
 
-- Extend the course app (e.g. validation, more categories) or reuse the same component patterns elsewhere.
-- When you need routing, SSR, or API routes, consider moving to **Next.js** and reusing your React components.
+The teaching slides in **`slides.md`** (at the repo root) reference extra code that illustrates routing, the `children` prop, and arrow-function components. If you are starting from the copy-paste implementation in 7.6, follow these steps to add that code so the app matches the slides. If the repo already includes these files, you can skip or use this as a reference.
+
+**A. Routing (Home + About)**
+
+1. **Install the router** (from `my-app/`):
+
+   ```bash
+   npm install react-router-dom
+   ```
+
+2. **Wrap the app with `BrowserRouter`** — In `src/main.jsx`, add the import and wrap `<App />`:
+
+   ```jsx
+   import { StrictMode } from "react";
+   import { createRoot } from "react-dom/client";
+   import { BrowserRouter } from "react-router-dom";
+   import "./index.css";
+   import App from "./App.jsx";
+
+   createRoot(document.getElementById("root")).render(
+     <StrictMode>
+       <BrowserRouter>
+         <App />
+       </BrowserRouter>
+     </StrictMode>,
+   );
+   ```
+
+3. **Create the About page** — Create `src/pages/About.jsx`:
+
+   ```jsx
+   export default function About() {
+     return (
+       <div className="max-w-2xl mx-auto p-6">
+         <h1 className="text-2xl font-semibold text-slate-800 mb-4">About</h1>
+         <p className="text-slate-600 mb-4">
+           This app is a <strong>Course Manager</strong> for viewing and
+           managing a list of courses. You can search by course code or title,
+           create new courses, edit existing ones, and delete courses. The
+           course list is shown on the Home page; this About page describes what
+           the app does.
+         </p>
+         <p className="text-slate-600">
+           It is built with React and used as a teaching example for components,
+           state, props, events, and routing.
+         </p>
+       </div>
+     );
+   }
+   ```
+
+4. **Update `src/App.jsx`** to add a nav bar and routes:
+
+   ```jsx
+   import "./App.css";
+   import { Routes, Route, Link } from "react-router-dom";
+   import CourseManager from "./components/CourseManager";
+   import About from "./pages/About";
+
+   function App() {
+     return (
+       <div className="min-h-screen bg-slate-50">
+         <nav className="border-b border-slate-200 bg-white px-6 py-3 flex gap-4">
+           <Link
+             to="/"
+             className="text-slate-700 hover:text-slate-900 font-medium"
+           >
+             Home
+           </Link>
+           <Link
+             to="/about"
+             className="text-slate-700 hover:text-slate-900 font-medium"
+           >
+             About
+           </Link>
+         </nav>
+         <Routes>
+           <Route path="/" element={<CourseManager />} />
+           <Route path="/about" element={<About />} />
+         </Routes>
+       </div>
+     );
+   }
+
+   export default App;
+   ```
+
+   Home (`/`) shows the course list; About (`/about`) shows the description.
+
+**B. CategoryBadge and Card (for slides examples)**
+
+5. **Create `src/components/CategoryBadge.jsx`** (arrow-function component example):
+
+   ```jsx
+   /** Arrow-function component example: receives props and returns JSX. */
+   const CategoryBadge = ({ label }) => (
+     <span className="inline-block mt-2 text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+       {label}
+     </span>
+   );
+
+   export default CategoryBadge;
+   ```
+
+6. **Create `src/components/Card.jsx`** (illustrates the `children` prop):
+   ```jsx
+   /**
+    * Card illustrates the special `children` prop:
+    * content between opening and closing tags is passed as children.
+    */
+   export default function Card({ title, children }) {
+     return (
+       <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
+         <h2 className="font-medium text-slate-800 text-base mb-1">{title}</h2>
+         {children}
+       </div>
+     );
+   }
+   ```
+
+**C. Use Card and CategoryBadge in Course**
+
+7. **Update `src/components/Course.jsx`** to use `Card` and `CategoryBadge` (replacing the single outer `div` and inline category span):
+
+   ```jsx
+   import Card from "./Card";
+   import CategoryBadge from "./CategoryBadge";
+
+   export default function Course({ course, onEdit, onDelete }) {
+     return (
+       <Card title={course.code}>
+         <div className="text-sm text-slate-600 mt-1">{course.title}</div>
+         {course.category && <CategoryBadge label={course.category} />}
+         <div className="mt-3 flex gap-2">
+           <button
+             type="button"
+             onClick={() => onEdit(course)}
+             className="text-sm px-3 py-1.5 rounded bg-slate-200 text-slate-700 hover:bg-slate-300"
+           >
+             Edit
+           </button>
+           <button
+             type="button"
+             onClick={() => onDelete(course.id)}
+             className="text-sm px-3 py-1.5 rounded bg-red-100 text-red-700 hover:bg-red-200"
+           >
+             Delete
+           </button>
+         </div>
+       </Card>
+     );
+   }
+   ```
+
+After these steps, the app has routing (Home / About), and the course card uses `Card` (children) and `CategoryBadge` (arrow-function component), matching the examples in `slides.md`.
+
+---
