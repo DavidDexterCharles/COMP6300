@@ -113,7 +113,7 @@ export default function Course({ course, onEdit, onDelete }) {
 
   Each item gets a unique `key` (here `course.id`) so React can track list items correctly across re-renders.
 
-  **JS Side Note: Arrow functions** — Arrow functions provide a shorter syntax for writing functions. In general JavaScript they also preserve `this` from the enclosing scope (no need to `.bind(this)`), but in **function components** there is no `this` — the main benefits here are concise callbacks and easy passing of arguments. Sample examples from this codebase:
+  **JS Side Note: Arrow functions** — Arrow functions provide a shorter syntax for writing functions. The main benefits here are concise callbacks and easy passing of arguments. Sample examples from this codebase:
   - **Array rendering** — In `CourseListing.jsx`, each course is rendered via an arrow function passed to `.map()`: it receives `course` and returns the JSX for one list item.
 
     ```jsx
@@ -133,7 +133,7 @@ export default function Course({ course, onEdit, onDelete }) {
     <button onClick={() => onDelete(course.id)}>Delete</button>
     ```
 
-  - **Event handlers (using the event)** — In `CourseSearch.jsx`, the handler reads from the event and forwards the value; in `CourseListing.jsx`, it stops the click from bubbling to the backdrop.
+  - **Event handlers (using the event)** — In `CourseSearch.jsx`, the handler reads from the event and forwards the value; in `CourseListing.jsx`, it stops the click from bubbling to the backdrop. **This means:** In the DOM, a click on a child element “bubbles” up to its parents, so a click on the modal content would also fire the backdrop’s `onClick` (which closes the modal). Calling `e.stopPropagation()` on the inner div stops the event from reaching the backdrop, so clicking inside the modal does not close it; only clicking the dark backdrop does.
 
     ```jsx
     // CourseSearch.jsx — pass input value up
