@@ -220,8 +220,8 @@ export default function CourseSearch({ value, onChange }) {
 
 ### What are props?
 
-- **Props** = inputs passed from parent to child. They are **read-only**.
-- Flow is **one-way:** parent → child. Children never mutate props.
+- **Props** are the inputs that a parent component passes down to a child. They are **read-only**: the child receives them but must not change them. Changing a prop from inside the child would break React’s idea of a single source of truth and make the UI harder to reason about.
+- Data flow is **one-way**, from parent to child. The parent owns the data (or state) and passes a copy or a callback down; the child renders from those props and may notify the parent via callbacks. Children never mutate props — they only read them and, when needed, call functions passed as props (e.g. `onSave`) so the parent can update state.
 
 ### Passing props (parent → child)
 
@@ -231,8 +231,8 @@ export default function CourseSearch({ value, onChange }) {
 <Course course={course} onEdit={openEdit} onDelete={onDelete} />
 ```
 
-- `course`: data (object).
-- `onEdit`, `onDelete`: functions (callbacks). The child calls them to communicate back.
+- **`course`** — A data object. The parent gets it from the list it owns (e.g. from `courses.map`) and passes one item down so the child can display it.
+- **`onEdit`, `onDelete`** — Functions (callbacks) defined on the parent. The parent passes references to its own functions (`openEdit`, `onDelete`) so that when the child calls them, the parent’s logic runs (e.g. open the edit modal, or remove the course from state). When the child sends information back to the parent by calling these functions, that is often called **child-to-parent communication** or **inverse data flow**: data still flows one way (parent → child via props), but the child can signal back or send values by invoking the callback props the parent provided.
 
 ### Receiving props (child)
 
@@ -248,7 +248,7 @@ export default function Course({ course, onEdit, onDelete }) {
 }
 ```
 
-- The child doesn’t know _where_ the data lives or _how_ edit/delete work — it just calls the callbacks.
+- The child **reads** `course` to render the card (code, title, category). It **calls** `onEdit(course)` or `onDelete(course.id)` when the user clicks a button, passing back the relevant data (the whole course for edit, or just the id for delete). The child does not know where the data lives in the parent or how edit/delete are implemented — it only receives props and invokes the callbacks when the user acts. The parent is responsible for updating its own state or opening the modal when those callbacks run.
 
 ### Props can be anything
 
@@ -261,20 +261,58 @@ export default function Course({ course, onEdit, onDelete }) {
 
 ### Children (special prop)
 
+`children` is the content between opening and closing tags. The component receives it as a prop and renders it where `{children}` appears.
+
+**Before (without `Card`):** All content lived in one component. The course code, title, category, and buttons were siblings inside a single `div`:
+
 ```jsx
-function Card({ title, children }) {
+// Course.jsx — everything in one place
+return (
+  <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-4 ...">
+    <div className="font-medium text-slate-800">{course.code}</div>
+    <div className="text-sm text-slate-600 mt-1">{course.title}</div>
+    {course.category && <CategoryBadge label={course.category} />}
+    <div className="mt-3 flex gap-2">
+      <button onClick={() => onEdit(course)}>Edit</button>
+      <button onClick={() => onDelete(course.id)}>Delete</button>
+    </div>
+  </div>
+);
+```
+
+**After (with `Card` and `children`):** The outer wrapper and the “title” slot are moved into a reusable `Card`. The same inner content is passed as **children** — the JSX between `<Card>` and `</Card>`.
+
+**`Card.jsx`** — accepts `title` and `children`; renders the wrapper, then the title, then `{children}`:
+
+```jsx
+export default function Card({ title, children }) {
   return (
-    <div>
-      <h2>{title}</h2>
+    <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-4 ...">
+      <h2 className="font-medium text-slate-800 text-base mb-1">{title}</h2>
       {children}
     </div>
   );
 }
-
-<Card title="Course">Content here</Card>;
 ```
 
-- `children` is the content between opening and closing tags.
+**`Course.jsx`** — uses `Card`; the content between the tags becomes the `children` prop:
+
+```jsx
+export default function Course({ course, onEdit, onDelete }) {
+  return (
+    <Card title={course.code}>
+      <div className="text-sm text-slate-600 mt-1">{course.title}</div>
+      {course.category && <CategoryBadge label={course.category} />}
+      <div className="mt-3 flex gap-2">
+        <button onClick={() => onEdit(course)}>Edit</button>
+        <button onClick={() => onDelete(course.id)}>Delete</button>
+      </div>
+    </Card>
+  );
+}
+```
+
+**How it works:** React passes the content between `<Card>` and `</Card>` as the second argument to `Card`, which destructures it as `children`. So `title` is `course.code`, and `children` is the three elements (title div, category badge, button div). `Card` renders that content where it puts `{children}` — directly under the heading. The UI is the same; the structure is split into a reusable wrapper (`Card`) and slot for content (`children`).
 
 ---
 
@@ -583,16 +621,54 @@ setCourses((prev) => prev.filter((c) => c.id !== id));
 
 ## 9. Lifting State & Composition
 
+### Prop drilling
+
+**Prop drilling** is the common, informal term for passing a prop through several components so it reaches a deeply nested component. It becomes an anti-pattern when it is verbose and makes the code hard to maintain or read.
+
+**Example (hypothetical):** Suppose the app needed to pass an `onReportError` callback from `App` down to `Course` so each card could report errors. Every component in between would have to accept and forward the prop even if it doesn’t use it:
+
+```jsx
+// App.jsx — owns the callback
+<CourseManager onReportError={handleReportError} />
+
+// CourseManager.jsx — doesn’t use it, just forwards
+<CourseListing onReportError={onReportError} ... />
+
+// CourseListing.jsx — doesn’t use it, just forwards
+<Course course={course} onReportError={onReportError} onEdit={openEdit} onDelete={onDelete} />
+
+// Course.jsx — finally uses it
+<button onClick={() => onReportError(course.id)}>Report</button>
+```
+
+That chain is prop drilling. The app in this repo avoids it for course data by only passing props one or two levels; for data needed many levels deep, the **Context API** (see section 12) is used instead.
+
 ### Lifting state up
 
-- When **several components need the same state**, put that state in their **common ancestor** and pass it down (and pass setters/callbacks).
+When multiple components need access to the same changing data (state), the recommended practice is to move (lift) the shared state to their **closest common ancestor**. That parent then passes the state down as props (and passes setters or callbacks so children can request updates).
 
-**In this app:**
+**Example from this codebase:** `CourseSearch` and `CourseListing` both need `searchTerm` or the list of courses. The closest common ancestor is `CourseManager`, so state lives there and is passed down:
 
-- `CourseManager` owns `courses` and `searchTerm`.
-- `CourseSearch` gets `value={searchTerm}` and `onChange={setSearchTerm}` (controlled).
-- `CourseListing` gets `courses`, `onCreate`, `onUpdate`, `onDelete`.
-- `Course` gets one `course` and callbacks. It doesn’t own any list state.
+```jsx
+// CourseManager.jsx — state lives here (closest common ancestor)
+const [courses, setCourses] = useState(INITIAL_COURSES);
+const [searchTerm, setSearchTerm] = useState("");
+
+return (
+  <div>
+    <CourseSearch value={searchTerm} onChange={setSearchTerm} />
+    <CourseListing
+      courses={filteredCourses}
+      onCreate={handleCreate}
+      onUpdate={handleUpdate}
+      onDelete={handleDelete}
+    />
+  </div>
+);
+```
+
+- `CourseSearch` receives `value` and `onChange` so it can display and update the search term; it does not own state.
+- `CourseListing` receives `courses` (the filtered list) and the handlers; `Course` receives one `course` and callbacks. None of them own the list; they only read and request changes via callbacks.
 
 ### Data flow diagram
 
@@ -606,10 +682,14 @@ CourseManager [courses, setCourses, searchTerm, setSearchTerm]
             └─► Course: course, onEdit, onDelete  (per item)
 ```
 
+### Context API (preview)
+
+To avoid excessive prop drilling, React provides the **Context API**. Context allows data to be provided at a top-level component and consumed by any descendant without passing it through every intermediate component — often described as “teleporting” data to deep parts of the tree. Section 12 shows how to add a `CourseContext` so components like `CourseListing` or `Course` can read course data via `useCourses()` instead of receiving it through props from `CourseManager`.
+
 ### Composition vs prop drilling
 
 - **Composition:** pass components as props or `children` to avoid passing many props through intermediate components.
-- If the same props are passed through many layers, **Context** can be used instead (see below).
+- When the same props would be passed through many layers, **Context** can be used instead (see section 12).
 
 ---
 
@@ -714,7 +794,7 @@ async function createCourse(course) {
 }
 ```
 
-### Teaching points
+### Note
 
 - Always handle **loading** and **error** state.
 - Use **cleanup** (e.g. a `cancelled` flag) so that `setState` is not called after unmount.
@@ -727,7 +807,7 @@ async function createCourse(course) {
 ### When to use Context
 
 - Same data or functions needed by **many components** at different levels (theme, auth, “current user”, API client).
-- Avoids **prop drilling** (passing props through many layers).
+- **Context API** lets a top-level component provide data that any descendant can consume without passing it through every level. Data is effectively “teleported” to deep components, avoiding **prop drilling** (passing props through many layers), which becomes verbose and hard to maintain.
 
 ### Creating context
 
@@ -882,7 +962,7 @@ function CourseDetail() {
 }
 ```
 
-### Teaching points
+### Note
 
 - **Route** = URL path + component.
 - **Link** for navigation without full page reload.
