@@ -878,8 +878,6 @@ function CourseListing() {
 
 - **Split contexts** by concern (e.g. AuthContext, CourseContext) so only consumers that need a value re-render when it changes.
 - **Stable value:** memoize the context value with `useMemo` if it’s an object/array to avoid unnecessary re-renders.
-- For complex app-wide state, consider **state management** (e.g. Redux, Zustand) later; Context is fine for theme, auth, and moderate state.
-
 ---
 
 ## 13. Routing
