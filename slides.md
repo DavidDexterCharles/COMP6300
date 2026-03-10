@@ -884,17 +884,16 @@ function CourseListing() {
 
 ### Why routing?
 
-- Multiple “pages” or views (e.g. list vs detail) with a URL.
+- Multiple “pages” or views (e.g. Home vs About) with a URL. The app can show different components for different paths without a full page reload.
 - **react-router-dom** is the standard library.
 
-### Setup (conceptual — add to this app when adding routes)
+### Setup in this codebase
 
-```bash
-npm install react-router-dom
-```
+The app uses two routes: **Home** (`/`) shows the course list (CourseManager); **About** (`/about`) shows a short description of the app. Navigation between them is done with `Link`.
+
+**1. Install and wrap with `BrowserRouter` (`main.jsx`):**
 
 ```jsx
-// main.jsx
 import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
 
@@ -907,56 +906,46 @@ createRoot(document.getElementById("root")).render(
 );
 ```
 
-### Defining routes (e.g. in `App.jsx`)
+**2. Define routes and nav (`App.jsx`):**
 
 ```jsx
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Link } from "react-router-dom";
 import CourseManager from "./components/CourseManager";
-import CourseDetail from "./components/CourseDetail";
+import About from "./pages/About";
 
 function App() {
   return (
     <div className="min-h-screen bg-slate-50">
+      <nav className="border-b border-slate-200 bg-white px-6 py-3 flex gap-4">
+        <Link to="/" className="...">Home</Link>
+        <Link to="/about" className="...">About</Link>
+      </nav>
       <Routes>
         <Route path="/" element={<CourseManager />} />
-        <Route path="/courses/:id" element={<CourseDetail />} />
+        <Route path="/about" element={<About />} />
       </Routes>
     </div>
   );
 }
 ```
 
+- **Home** (`/`): renders `CourseManager`, which contains the course list, search, and create/edit/delete.
+- **About** (`/about`): renders `About`, a page that describes what the app does.
+
+**3. About page (`pages/About.jsx`):**
+
+A simple component that explains the app (course manager, search, create/edit/delete, and that it is a teaching example). No routing logic inside the page — it just renders content.
+
 ### Navigation
 
-```jsx
-import { Link, useNavigate } from "react-router-dom";
-
-// Declarative link
-<Link to="/">Home</Link>
-<Link to={`/courses/${course.id}`}>View {course.code}</Link>
-
-// Programmatic
-const navigate = useNavigate();
-navigate("/");
-navigate(`/courses/${id}`);
-```
-
-### Reading URL params
-
-```jsx
-import { useParams } from "react-router-dom";
-
-function CourseDetail() {
-  const { id } = useParams();
-  // fetch or find course by id
-}
-```
+- **`Link`** — Declarative navigation: the user clicks a link, the URL changes, and the matching route’s component is rendered. No full page reload. In this app, the nav bar uses `<Link to="/">Home</Link>` and `<Link to="/about">About</Link>`.
+- **`useNavigate()`** — For programmatic navigation (e.g. after a form submit): `const navigate = useNavigate();` then `navigate("/")` or `navigate("/about")`.
 
 ### Note
 
-- **Route** = URL path + component.
-- **Link** for navigation without full page reload.
-- **useParams** for dynamic segments; **useSearchParams** for query strings.
+- **Route** = URL path + component. When the URL matches the path, the corresponding `element` is rendered.
+- **Link** keeps navigation inside the React app (no full page reload).
+- For dynamic segments (e.g. `/courses/:id`), use **useParams** in the route component to read `id`; for query strings, use **useSearchParams**. This app uses only static paths `/` and `/about`.
 
 ---
 
@@ -966,8 +955,9 @@ function CourseDetail() {
 
 | File                | Concepts demonstrated                       |
 | ------------------- | ------------------------------------------- |
-| `App.jsx`           | Root component, composition                 |
-| `main.jsx`          | Entry, StrictMode, createRoot               |
+| `App.jsx`           | Root component, routing (Routes, Route, Link), nav |
+| `main.jsx`          | Entry, StrictMode, createRoot, BrowserRouter |
+| `pages/About.jsx`   | Route component, static content             |
 | `CourseManager.jsx` | useState, useMemo, lifting state, handlers  |
 | `CourseListing.jsx` | useState, events (onSubmit, onClick), props |
 | `Course.jsx`        | Props, destructuring, callbacks             |
