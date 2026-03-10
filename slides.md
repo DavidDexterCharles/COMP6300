@@ -195,11 +195,13 @@ export default function CourseSearch({ value, onChange }) {
   // CourseListing.jsx — composes Course for each item
   import Course from "./Course";
   // ...
-  {courses.map((course) => (
-    <div key={course.id}>
-      <Course course={course} onEdit={openEdit} onDelete={onDelete} />
-    </div>
-  ))}
+  {
+    courses.map((course) => (
+      <div key={course.id}>
+        <Course course={course} onEdit={openEdit} onDelete={onDelete} />
+      </div>
+    ));
+  }
   ```
 
 - **Default export:** Components use `export default` and are imported by name. Example from the codebase:
@@ -408,6 +410,8 @@ courses.push(newCourse); // ❌ Don’t mutate
 setCourses(courses); // React may not re-render
 ```
 
+- **Why this is mutation:** `courses.push(newCourse)` changes the existing array in place — it adds an item to the same array object that React is already holding in state. The array reference does not change. Then `setCourses(courses)` passes that same reference back. React compares the previous and next state by reference; when the reference is the same, it may skip re-rendering. So the UI can stay stale. In general, **mutation** means modifying an existing object or array (e.g. `arr.push`, `obj.foo = x`) instead of creating a new one. React expects state to be updated by passing a new reference (new array or object) to the setter.
+
 **Right (new reference):**
 
 ```jsx
@@ -420,7 +424,7 @@ function handleCreate(course) {
 }
 ```
 
-- **Functional updates:** `setCourses((prev) => ...)` when the new state depends on the previous state (avoids stale closures).
+**JS Side Note: Spread operator** — Here `...prev` creates a **new** array containing all previous items; the new element is added to that new array, so the original `prev` is never mutated. Similarly, `{ ...course, id: ... }` creates a new object. React sees a new reference and re-renders. The same idea applies in `handleUpdate` below: `prev.map(...)` returns a new array, and `{ ...c, ...updates }` creates a new object for the updated item.
 
 ### Functional updates
 
@@ -440,6 +444,8 @@ function handleUpdate(id, updates) {
   );
 }
 ```
+
+- In `handleUpdate`, **why this is not mutation:** `prev.map(...)` returns a new array; for the matching item, `{ ...c, ...updates }` creates a new object instead of changing `c`. The original `prev` and each `c` are left unchanged.
 
 ---
 
@@ -983,14 +989,6 @@ function CourseDetail() {
 - [ ] Add routing (react-router-dom) for multiple views/URLs.
 - [ ] Keep components focused, name clearly, and prefer small, testable pieces.
 
-### Optional next steps (beyond 3 hours)
-
-- **Custom hooks** (e.g. `useCourses`, `useFetch`) to reuse state and effect logic.
-- **Error boundaries** for graceful error handling in the tree.
-- **React.memo** and **useCallback** when measurement shows that re-renders need to be limited.
-- **Testing** with React Testing Library and Jest.
-- **TypeScript** for props and state types.
-
 ---
 
 ## Quick reference: hooks used in this app
@@ -1004,4 +1002,4 @@ function CourseDetail() {
 
 ---
 
-_Slides content derived from the Course Manager app in `my-app/`. Use the repo as the live coding and demo source while presenting._
+_Slides content derived from the Course Manager app in `my-app/`. ._
