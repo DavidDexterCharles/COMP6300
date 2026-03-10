@@ -1,6 +1,6 @@
 # COMP6300
 
-Week 7 Lab: Implement React App
+Week 8 Lab: Implement React App
 
 This repo uses the **production** way to build React apps: scaffold with a build tool, then run and build. The standard approach is **Vite** with the React template (fast, minimal, recommended over Create React App), plus **Tailwind CSS** for styling. From here you can later move to **Next.js** when you need a full-stack framework.
 
