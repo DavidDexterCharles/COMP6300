@@ -465,7 +465,7 @@ function handleUpdate(id, updates) {
 <button onClick={() => onDelete(course.id)}>Delete</button>
 ```
 
-- Inline arrow function so we can pass arguments (`course`, `course.id`).
+- Using an inline arrow function here lets us pass arguments into the handler: we need to send the whole `course` to `onEdit` and only `course.id` to `onDelete`. If we wrote `onClick={onEdit}` the handler would run with the click event, not the course data. Wrapping it in `() => onEdit(course)` means “when clicked, call onEdit with this course.”
 
 **From `CourseListing.jsx`:**
 
@@ -475,7 +475,7 @@ function handleUpdate(id, updates) {
   <div onClick={(e) => e.stopPropagation()}>  {/* modal content */}
 ```
 
-- `e.stopPropagation()`: prevents the backdrop click from firing when clicking inside the modal.
+- Calling `e.stopPropagation()` on the modal content stops the click from bubbling up to the backdrop. So when the user clicks inside the white modal, only that handler runs; the backdrop’s handler (which closes the modal) does not run. That way the modal stays open when you click inside it and only closes when you click the dark overlay.
 
 ### onChange (controlled inputs)
 
@@ -485,7 +485,7 @@ function handleUpdate(id, updates) {
 <input value={value} onChange={(e) => onChange(e.target.value)} />
 ```
 
-- **Controlled component:** `value` comes from state; every keystroke updates state via `onChange`. Single source of truth.
+- This is a **controlled** input: the value shown in the field comes from React state, and every keystroke updates that state through `onChange`. So the input never “owns” its own text — React does. That gives a single source of truth: the state drives what you see, and you can validate or transform the value in one place.
 
 ### onSubmit (forms)
 
@@ -510,8 +510,8 @@ function handleSubmit(e) {
 <form onSubmit={handleSubmit}>
 ```
 
-- **e.preventDefault():** essential for single-page behaviour.
-- Read values from `e.target` (the form) or individual fields.
+- **e.preventDefault()** stops the browser’s default form behaviour, which is to submit the form and reload the page. In a React app we want to handle submit in JavaScript and stay on the same page, so we call `preventDefault()` at the start of the handler.
+- The handler receives the event `e`; the form element is `e.target`. You can read field values from `e.target` (e.g. `e.target.code`, `e.target.title`) or by giving inputs a `name` and then reading `form.name.value`, as in the code above.
 
 ### Event object
 
