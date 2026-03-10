@@ -885,6 +885,7 @@ function CourseListing() {
 ### Why routing?
 
 - Multiple “pages” or views (e.g. Home vs About) with a URL. The app can show different components for different paths without a full page reload.
+- **Client-side rendering:** The server sends one initial HTML page and the JavaScript bundle. After that, React and the router run in the browser. When the user goes from Home to About (or the other way), the router only changes the URL and tells React which component to render. React updates the DOM in place — no new request to the server for another HTML page. So the "page change" is done entirely on the client: the same JS is already loaded, and it just swaps the visible component. That is client-side rendering for navigation: the browser does the rendering and the server is not asked for a new document on each route change.
 - **react-router-dom** is the standard library.
 
 ### Setup in this codebase
