@@ -6,6 +6,8 @@
 
 Use this document as the source for slide content. Code examples are taken from or aligned with the Course Manager app in `my-app/`.
 
+**JS Side Notes:** Throughout the slides, **JS Side Note** callouts appear where JavaScript (especially ES6+) concepts are used. They cover topics such as: arrow functions, destructuring, spread/rest operators, closures, promises & async/await, the event loop, and array methods (`map`, `filter`, `reduce`). Use these when the audience may need a quick reminder of the underlying JS.
+
 ---
 
 ## Table of Contents
@@ -16,7 +18,7 @@ Use this document as the source for slide content. Code examples are taken from 
 4. [Destructuring](#4-destructuring)
 5. [useState — Local State](#5-usestate--local-state)
 6. [Event Handling](#6-event-handling)
-7. [Component Lifecycle & useEffect](#7-component-lifecycle--useeffect)
+7. [useEffect — Side Effects After Render](#7-useeffect--side-effects-after-render)
 8. [Spread Operator in React](#8-spread-operator-in-react)
 9. [Lifting State & Composition](#9-lifting-state--composition)
 10. [useMemo — Derived State](#10-usememo--derived-state)
@@ -54,11 +56,11 @@ createRoot(document.getElementById('root')).render(
 
 - **`createRoot` + `render`** — The React 18+ way to mount the app. The DOM node (here `document.getElementById("root")`) is passed to `createRoot`, which returns a *root* object. Calling `root.render(<App />)` tells React to take over that DOM node and render the component tree inside it. React then manages updates: when state or props change, it re-renders only what’s needed and updates the real DOM (this is the “virtual DOM” idea). In React 17 and earlier, the API was `ReactDOM.render(<App />, document.getElementById("root"))`; the new API enables React 18 features like concurrent rendering and is the one to use going forward.
 - **`StrictMode`** — A development-only wrapper that helps write safer code. It doesn’t render any extra UI.
-  - In development, React intentionally *double-invokes* certain functions (e.g. component bodies and some lifecycle logic) so that side effects and impure code become visible.
+  - In development, React intentionally *double-invokes* certain functions (e.g. component bodies and some effect-related logic) so that side effects and impure code become visible.
   - **Why double-invoke?** If a component body does side effects during render (e.g. mutates a global variable — changing something outside the component, like `window.someCounter = (window.someCounter || 0) + 1`; or writes to `localStorage`; or triggers a network request), running it twice makes the bug obvious: duplicate requests, wrong counts, or inconsistent state.
   - **Where to put mutations and side effects:** React’s model is that the component function should be *pure* for a given props/state (same in, same out). Any mutation or side effect — e.g. updating a global, writing to storage, or fetching data — should live in **`useEffect`** (or similar), not in the render path. That way React controls when they run (after commit, with cleanup), and StrictMode’s double-invoke won’t run them twice in the same way.
   - Double-invoking doesn’t change behaviour in production; it only helps find code that breaks the pure-render assumption.
-  - StrictMode also warns about deprecated APIs (e.g. legacy string refs, old lifecycle methods) and highlights potential problems with concurrent rendering.
+  - StrictMode also warns about deprecated APIs (e.g. legacy string refs and other deprecated patterns) and highlights potential problems with concurrent rendering.
   - In production builds, StrictMode has no effect, so it’s safe to leave it in the tree.
 
 ### Component tree in this app
@@ -77,7 +79,7 @@ App
 
 ### What is a component?
 
-- A **function** (or class) that returns **JSX**. In practice a function is written that describes the UI for a given set of inputs (props and state). React calls that function whenever it needs to render or re-render that part of the tree. The return value is JSX — a syntax that looks like HTML but compiles to `React.createElement` calls, i.e. plain JavaScript objects describing elements and components. So a component is really “a recipe for a piece of UI”: same inputs should give the same output (ideally pure), and React handles when to run the recipe and how to apply the result to the DOM. Classes are the older style; function components (with hooks) are the standard today.
+- A **function** (or class) that returns **JSX**. In practice a function is written that describes the UI for a given set of inputs (props and state). React calls that function whenever it needs to render or re-render that part of the tree. The return value is JSX — a syntax that looks like HTML but compiles to `React.createElement` calls, i.e. plain JavaScript objects describing elements and components. So a component is really “a recipe for a piece of UI”: same inputs should give the same output (ideally pure), and React handles when to run the recipe and how to apply the result to the DOM.
 - Name must start with a capital letter so React treats it as a component, not an HTML tag. For example, `<Course />` is treated as the `Course` component; `<course />` would be treated as a lowercase HTML element (invalid in HTML5 and not the intended component). Same for `<CourseListing />` vs `<courselisting />`.
 
 ### Function components (used everywhere in this app)
@@ -108,6 +110,46 @@ export default function Course({ course, onEdit, onDelete }) {
   ```
 
   Each item gets a unique `key` (here `course.id`) so React can track list items correctly across re-renders.
+
+  **JS Side Note: Arrow functions** — Arrow functions provide a shorter syntax for writing functions. In general JavaScript they also preserve `this` from the enclosing scope (no need to `.bind(this)`), but in **function components** there is no `this` — the main benefits here are concise callbacks and easy passing of arguments. Sample examples from this codebase:
+
+  - **Array rendering** — In `CourseListing.jsx`, each course is rendered via an arrow function passed to `.map()`: it receives `course` and returns the JSX for one list item.
+
+    ```jsx
+    {courses.map((course) => (
+      <div key={course.id} className="w-[280px]">
+        <Course course={course} onEdit={openEdit} onDelete={onDelete} />
+      </div>
+    ))}
+    ```
+
+  - **Event handlers (passing arguments)** — In `Course.jsx`, the handler must pass `course` or `course.id` into the parent callback. An arrow function wraps the call so the correct argument is passed when the button is clicked.
+
+    ```jsx
+    <button onClick={() => onEdit(course)}>Edit</button>
+    <button onClick={() => onDelete(course.id)}>Delete</button>
+    ```
+
+  - **Event handlers (using the event)** — In `CourseSearch.jsx`, the handler reads from the event and forwards the value; in `CourseListing.jsx`, it stops the click from bubbling to the backdrop.
+
+    ```jsx
+    // CourseSearch.jsx — pass input value up
+    <input onChange={(e) => onChange(e.target.value)} />
+    // CourseListing.jsx — keep modal open when clicking inside it
+    <div onClick={(e) => e.stopPropagation()}>
+    ```
+
+  - **Functional component (arrow form)** — A component can be defined as an arrow function that takes props and returns JSX. In the codebase, `CategoryBadge.jsx` is an example (used by `Course.jsx` for the category label).
+
+    ```jsx
+    // CategoryBadge.jsx
+    const CategoryBadge = ({ label }) => (
+      <span className="inline-block mt-2 text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+        {label}
+      </span>
+    );
+    export default CategoryBadge;
+    ```
 
 ### Another example — `CourseSearch.jsx`
 
@@ -410,14 +452,10 @@ function handleSubmit(e) {
 
 ---
 
-## 7. Component Lifecycle & useEffect
+## 7. useEffect — Side Effects After Render
 
-### From “lifecycle” to “render + effects”
 
-- Class components had lifecycle methods (`componentDidMount`, `componentDidUpdate`, etc.).
-- With function components we think in terms of:
-  - **Render:** function runs, returns JSX.
-  - **Effects:** side effects (fetch, subscriptions, DOM) via **useEffect**.
+- The component function should be pure: given props and state, it returns JSX. Side effects (fetch, subscriptions, DOM updates, timers) should not run during render. They run **after** render via **useEffect**, so React can control when they run and clean them up.
 
 ### useEffect signature
 
@@ -465,6 +503,8 @@ useEffect(() => {
 ---
 
 ## 8. Spread Operator in React
+
+**JS Side Note: Spread/rest** — The `...` syntax is ES6+: *spread* copies enumerable properties from an object or elements from an array into a new object/array (used below for immutable updates); *rest* collects remaining arguments or properties (e.g. `const { a, ...rest } = obj`). In React, spread is common when updating state or passing props.
 
 ### Spreading objects (updating state immutably)
 
