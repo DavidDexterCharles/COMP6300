@@ -1,11 +1,12 @@
 # React: From Foundations to Mid-Level
 
-
 **Codebase:** This repo (`my-app`) — Course Manager app
 
 Code examples are taken from or aligned with the Course Manager app in `my-app/`.
 
 **JS Side Notes:** Throughout the slides, **JS Side Note** callouts appear where JavaScript (especially ES6+) concepts are used. They cover topics such as: arrow functions, destructuring, spread/rest operators, closures, promises & async/await, the event loop, and array methods (`map`, `filter`, `reduce`).
+
+
 ---
 
 ## Table of Contents
