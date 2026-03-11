@@ -6,7 +6,6 @@ Code examples are taken from or aligned with the Course Manager app in `my-app/`
 
 **JS Side Notes:** Throughout the slides, **JS Side Note** callouts appear where JavaScript (especially ES6+) concepts are used. They cover topics such as: arrow functions, destructuring, spread/rest operators, closures, promises & async/await, the event loop, and array methods (`map`, `filter`, `reduce`).
 
-
 ---
 
 ## Table of Contents
@@ -877,6 +876,7 @@ function CourseListing() {
 
 - **Split contexts** by concern (e.g. AuthContext, CourseContext) so only consumers that need a value re-render when it changes.
 - **Stable value:** memoize the context value with `useMemo` if it’s an object/array to avoid unnecessary re-renders.
+
 ---
 
 ## 13. Routing
@@ -917,8 +917,12 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-50">
       <nav className="border-b border-slate-200 bg-white px-6 py-3 flex gap-4">
-        <Link to="/" className="...">Home</Link>
-        <Link to="/about" className="...">About</Link>
+        <Link to="/" className="...">
+          Home
+        </Link>
+        <Link to="/about" className="...">
+          About
+        </Link>
       </nav>
       <Routes>
         <Route path="/" element={<CourseManager />} />
@@ -953,15 +957,15 @@ A simple component that explains the app (course manager, search, create/edit/de
 
 ### Key files in this codebase
 
-| File                | Concepts demonstrated                       |
-| ------------------- | ------------------------------------------- |
+| File                | Concepts demonstrated                              |
+| ------------------- | -------------------------------------------------- |
 | `App.jsx`           | Root component, routing (Routes, Route, Link), nav |
-| `main.jsx`          | Entry, StrictMode, createRoot, BrowserRouter |
-| `pages/About.jsx`   | Route component, static content             |
-| `CourseManager.jsx` | useState, useMemo, lifting state, handlers  |
-| `CourseListing.jsx` | useState, events (onSubmit, onClick), props |
-| `Course.jsx`        | Props, destructuring, callbacks             |
-| `CourseSearch.jsx`  | Controlled input, props                     |
+| `main.jsx`          | Entry, StrictMode, createRoot, BrowserRouter       |
+| `pages/About.jsx`   | Route component, static content                    |
+| `CourseManager.jsx` | useState, useMemo, lifting state, handlers         |
+| `CourseListing.jsx` | useState, events (onSubmit, onClick), props        |
+| `Course.jsx`        | Props, destructuring, callbacks                    |
+| `CourseSearch.jsx`  | Controlled input, props                            |
 
 ### Checklist for mid-level React
 
