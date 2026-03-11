@@ -1,12 +1,10 @@
-# React: From Foundations to Mid-Level — Teaching Slides
+# React: From Foundations to Mid-Level
 
-**Audience:** Masters students  
-**Duration:** ~3 hours  
 **Codebase:** This repo (`my-app`) — Course Manager app
 
-Use this document as the source for slide content. Code examples are taken from or aligned with the Course Manager app in `my-app/`.
+Code examples are taken from or aligned with the Course Manager app in `my-app/`.
 
-**JS Side Notes:** Throughout the slides, **JS Side Note** callouts appear where JavaScript (especially ES6+) concepts are used. They cover topics such as: arrow functions, destructuring, spread/rest operators, closures, promises & async/await, the event loop, and array methods (`map`, `filter`, `reduce`). Use these when the audience may need a quick reminder of the underlying JS.
+**JS Side Notes:** Throughout the slides, **JS Side Note** callouts appear where JavaScript (especially ES6+) concepts are used. They cover topics such as: arrow functions, destructuring, spread/rest operators, closures, promises & async/await, the event loop, and array methods (`map`, `filter`, `reduce`).
 
 ---
 
