@@ -638,35 +638,13 @@ When done, you should be able to view all courses, search by code or title, and 
 
 ### 7.8 Activity: Extra code matching slides.md
 
-The teaching slides in **`slides.md`** (at the repo root) reference extra code that illustrates routing, the `children` prop, and arrow-function components. **Complete the following steps yourself** so your app matches the slides. The starter codebase does not include this code — you will add routing (Home + About), the `Card` and `CategoryBadge` components, and update `Course` to use them.
+The teaching slides in **`slides.md`** (at the repo root) reference extra code that illustrates routing, the `children` prop, and arrow-function components. **Complete the following steps** so your app matches the slides.
 
-**A. Routing (Home + About)**
+Important: to avoid “module not found” / router errors while you work, follow the order below: **create new files first**, then **wire them into imports/routes**, then refactor `Course` to use them.
 
-1. **Install the router** (from `my-app/`):
+**A. Create the new files first (safe — no existing imports change yet)**
 
-   ```bash
-   npm install react-router-dom
-   ```
-
-2. **Wrap the app with `BrowserRouter`** — In `src/main.jsx`, add the import and wrap `<App />`:
-
-   ```jsx
-   import { StrictMode } from "react";
-   import { createRoot } from "react-dom/client";
-   import { BrowserRouter } from "react-router-dom";
-   import "./index.css";
-   import App from "./App.jsx";
-
-   createRoot(document.getElementById("root")).render(
-     <StrictMode>
-       <BrowserRouter>
-         <App />
-       </BrowserRouter>
-     </StrictMode>,
-   );
-   ```
-
-3. **Create the About page** — Create `src/pages/About.jsx`:
+1. **Create the About page** — Create `src/pages/About.jsx` (create the `pages/` folder if it doesn’t exist):
 
    ```jsx
    export default function About() {
@@ -689,7 +667,62 @@ The teaching slides in **`slides.md`** (at the repo root) reference extra code t
    }
    ```
 
-4. **Update `src/App.jsx`** to add a nav bar and routes:
+2. **Create `src/components/CategoryBadge.jsx`** (arrow-function component example):
+
+   ```jsx
+   const CategoryBadge = ({ label }) => (
+     <span className="inline-block mt-2 text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+       {label}
+     </span>
+   );
+
+   export default CategoryBadge;
+   ```
+
+3. **Create `src/components/Card.jsx`** (illustrates the `children` prop):
+
+   ```jsx
+   export default function Card({ title, children }) {
+     return (
+       <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
+         <h2 className="font-medium text-slate-800 text-base mb-1">{title}</h2>
+         {children}
+       </div>
+     );
+   }
+   ```
+
+At this point, your app should still run exactly as before (you’ve only added new files).
+
+**B. Routing (Home + About)**
+
+4. **Install the router** (from `my-app/`):
+
+   ```bash
+   npm install react-router-dom
+   ```
+
+If your dev server is running, restart it after the install.
+
+5. **Wrap the app with `BrowserRouter`** — In `src/main.jsx`, add the import and wrap `<App />`:
+
+   ```jsx
+   import { StrictMode } from "react";
+   import { createRoot } from "react-dom/client";
+   import { BrowserRouter } from "react-router-dom";
+   import "./index.css";
+   import App from "./App.jsx";
+
+   createRoot(document.getElementById("root")).render(
+     <StrictMode>
+       <BrowserRouter>
+         <App />
+       </BrowserRouter>
+     </StrictMode>,
+   );
+   ```
+
+6. **Update `src/App.jsx`** to add a nav bar and routes:
 
    ```jsx
    import "./App.css";
@@ -727,40 +760,9 @@ The teaching slides in **`slides.md`** (at the repo root) reference extra code t
 
    Home (`/`) shows the course list; About (`/about`) shows the description.
 
-**B. CategoryBadge and Card (for slides examples)**
-
-5. **Create `src/components/CategoryBadge.jsx`** (arrow-function component example):
-
-   ```jsx
-   /** Arrow-function component example: receives props and returns JSX. */
-   const CategoryBadge = ({ label }) => (
-     <span className="inline-block mt-2 text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-       {label}
-     </span>
-   );
-
-   export default CategoryBadge;
-   ```
-
-6. **Create `src/components/Card.jsx`** (illustrates the `children` prop):
-   ```jsx
-   /**
-    * Card illustrates the special `children` prop:
-    * content between opening and closing tags is passed as children.
-    */
-   export default function Card({ title, children }) {
-     return (
-       <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
-         <h2 className="font-medium text-slate-800 text-base mb-1">{title}</h2>
-         {children}
-       </div>
-     );
-   }
-   ```
-
 **C. Use Card and CategoryBadge in Course**
 
-7. **Update `src/components/Course.jsx`** to use `Card` and `CategoryBadge` (replacing the single outer `div` and inline category span):
+7. **Update `src/components/Course.jsx`** to use `Card` and `CategoryBadge` (do this last so the imports definitely exist):
 
    ```jsx
    import Card from "./Card";
@@ -793,5 +795,11 @@ The teaching slides in **`slides.md`** (at the repo root) reference extra code t
    ```
 
 After these steps, the app has routing (Home / About), and the course card uses `Card` (children) and `CategoryBadge` (arrow-function component), matching the examples in `slides.md`.
+
+Common “I broke it” fixes:
+
+- If you see **“useRoutes() may be used only in the context of a `<Router>`”** (or Links not working), make sure `src/main.jsx` wraps `<App />` in `<BrowserRouter>`.
+- If you see **“Failed to resolve import …/About”**, confirm `src/pages/About.jsx` exists and exports `default`.
+- If you see **“Failed to resolve import …/Card”** or **`CategoryBadge`**, confirm the files exist in `src/components/` and the import paths match the filenames.
 
 ---
