@@ -18,7 +18,7 @@ This repo uses the **production** way to build React apps: scaffold with a build
 
 1. Download the latest **nvm-setup.exe** from [nvm-windows releases](https://github.com/coreybutler/nvm-windows/releases).
 2. Run the installer. It will set up `nvm` and ask you to uninstall any existing Node.js so nvm can manage it.
-3. Open a **new** Command Prompt or PowerShell. Run:
+3. Open a **new** Command Prompt or PowerShell (As Administrator). Run:
    ```bash
    nvm install 22
    nvm use 22
